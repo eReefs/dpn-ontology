@@ -1,15 +1,21 @@
 # baseURI: http://purl.org/dpn/dataset
 # imports: http://www.w3.org/2003/01/geo/wgs84_pos
 # imports: http://www.w3.org/2006/time
+# imports: http://w3id.org/env/puv
 # prefix: dpnd
 
 @prefix dc: <http://purl.org/dc/terms/> .
-@prefix dpnd: <http://purl.org/dpn/dataset#> .
-@prefix puv: <https://w3id.org/env/puv#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix j.0: <http://purl.org/dc/elements/1.1/> .
+@prefix dpn: <http://purl.org/dpn/v0.8#> .
+@prefix dpnd: <http://purl.org/dpn/dataset#> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix puv: <https://w3id.org/env/puv#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
@@ -17,62 +23,51 @@
 
 <http://purl.org/dpn/dataset>
   rdf:type owl:Ontology ;
-  rdfs:comment "This ontology is being developed by CSIRO (originally under the eReefs project) for describing datasets, such as observational datasets. It imports the observable properties ontology which allows description of feature, substance or taxon, and quantity kinds." ;
-  owl:imports <http://www.w3.org/2003/01/geo/wgs84_pos> ;
-  owl:imports <http://www.w3.org/2006/time> ;
-  owl:versionIRI <http://purl.org/dpn/dataset/v0.7.2> ;
-  owl:versionInfo "v 0.7.2 19/12/2017" ;
+  rdfs:comment "This ontology is being developed by CSIRO under the eReefs project for describing datasets, such as observational datasets. It imports the observable properties ontology which allows description of feature, substance or taxon, and quantity kinds." ;
+  owl:imports dpn: ;
+  owl:imports geo: ;
+  owl:imports puv: ;
+  owl:imports qudt: ;
+  owl:imports sosa: ;
+  owl:imports time: ;
+  owl:priorVersion <http://purl.org/dpn/dataset/v0.7.2> ;
+  owl:versionIRI <http://purl.org/dpn/dataset/v0.8> ;
+  owl:versionInfo "v0.8 eReefs Phase 5 2022" ;
   skos:changeNote "Additional alignment to OWL-Time added by SJDC - 2016-06-16" ;
+  skos:changeNote "Incorporation of PUV-Ont added by ST - 2022-04 for eReefs Phase 5" ;
 .
+
 dpnd:BoundingBox
   rdf:type owl:Class ;
   rdfs:comment "A geospatial bounding box." ;
   rdfs:label "Bounding box" ;
-  rdfs:subClassOf <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ;
+  rdfs:subClassOf geo:SpatialThing ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpnd:bbBottomRight ;
-      owl:someValuesFrom <http://www.w3.org/2003/01/geo/wgs84_pos#Point> ;
+      owl:someValuesFrom geo:Point ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpnd:bbTopLeft ;
-      owl:someValuesFrom <http://www.w3.org/2003/01/geo/wgs84_pos#Point> ;
+      owl:someValuesFrom geo:Point ;
     ] ;
 .
 dpnd:Observation
   rdf:type owl:Class ;
-  rdfs:comment "A description of an observation. In the context of observational data, we have defined observations which have related properties, matrices and objects of interest." ;
+  rdfs:comment "A dataset which contains information about related observations of a single property. These may be directly observed (field observations) or modelled" ;
   rdfs:label "Observation" ;
+  rdfs:subClassOf dpn:Dataset ;
+  rdfs:subClassOf puv:Parameter ;
   rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty puv:ofProperty ;
-      owl:someValuesFrom puv:Property ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty puv:inMatrix ;
-      owl:someValuesFrom puv:Matrix
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty puv:hasObjectOfInterest ;
-      owl:someValuesFrom puv:Entity ;
-    ] ;
-.
-dpnd:ObservationalDataset
-  rdf:type owl:Class ;
-  rdfs:comment "Dataset in this context is defined as observational data relating to some observations. We have defined this also as optionally having spatial and/or temporal properties." ;
-  rdfs:label "Observational Dataset" ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:allValuesFrom dpnd:Observation ;
-      owl:onProperty dpnd:relatedObservationType ;
-    ] ;
+    rdf:type owl:Restriction ;
+    owl:onProperty puv:parameter ;
+    owl:someValuesFrom puv:Parameter ;
+  ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpnd:spatial ;
-      owl:someValuesFrom <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ;
+      owl:someValuesFrom geo:SpatialThing ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
@@ -88,19 +83,22 @@ dpnd:TimeInterval
 .
 dpnd:bbBottomRight
   rdf:type owl:ObjectProperty ;
-  rdfs:domain <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ;
-  rdfs:label "bb bottom right" ;
-  rdfs:range <http://www.w3.org/2003/01/geo/wgs84_pos#Point> ;
+  rdfs:comment "Bottom-right (South-East-Nadir) coordinate of a geographical bounding box" ;
+  rdfs:domain dpnd:BoundingBox ;
+  rdfs:label "bbBottomRight" ;
+  rdfs:range geo:Point ;
 .
 dpnd:bbTopLeft
   rdf:type owl:ObjectProperty ;
-  rdfs:domain <http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing> ;
-  rdfs:label "bb top left" ;
-  rdfs:range <http://www.w3.org/2003/01/geo/wgs84_pos#Point> ;
+  rdfs:comment "Top-left (North-West-Zenith) coordinate of a geographical bounding box" ;
+  rdfs:domain dpnd:BoundingBox ;
+  rdfs:label "bbTopLeft" ;
+  rdfs:range geo:Point ;
 .
 dpnd:end
   rdf:type owl:DatatypeProperty ;
-  rdfs:comment "End date time" ;
+  rdfs:comment "The end of a time interval" ;
+  rdfs:domain dpnd:TimeInterval ;
   rdfs:label "end" ;
   rdfs:range xsd:dateTime ;
 .
@@ -108,12 +106,6 @@ dpnd:relatedFeature
   rdf:type owl:ObjectProperty ;
   rdfs:comment "related feature of interest" ;
   rdfs:label "related feature" ;
-.
-dpnd:relatedObservationType
-  rdf:type owl:ObjectProperty ;
-  rdfs:comment "Related observation type" ;
-  rdfs:label "related observation type" ;
-  rdfs:range dpnd:Observation ;
 .
 dpnd:relatedQuantityKind
   rdf:type owl:ObjectProperty ;
@@ -125,21 +117,205 @@ dpnd:relatedSubstanceOrTaxon
   rdfs:label "related substance or taxon" ;
 .
 dpnd:spatial
+  owl:equivalentProperty dc:spatial ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "specialisation of the spatial relationship with range restriction applicable for the dataset ontology" ;
+  rdfs:comment "The spatial location (e.g. point or bounding box) where observations were made" ;
+  rdfs:domain dpnd:Observation ;
   rdfs:label "spatial" ;
-  rdfs:range dpnd:BoundingBox ;
-  rdfs:subPropertyOf dc:spatial ;
+  rdfs:range geo:SpatialThing ;
 .
 dpnd:start
   rdf:type owl:DatatypeProperty ;
-  rdfs:comment "start date time" ;
+  rdfs:comment "The beginning of a time-range" ;
+  rdfs:domain dpnd:TimeInterval ;
   rdfs:label "start" ;
   rdfs:range xsd:dateTime ;
 .
 dpnd:temporal
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "temporal property with range restriction to temporal descriptions applicable for the dataset ontology (currently time interval)" ;
+  rdfs:comment "The time-range for which observations were made" ;
+  rdfs:domain dpnd:Observation ;
   rdfs:label "temporal" ;
   rdfs:range dpnd:TimeInterval ;
+.
+#----------------------------------------------------------------------
+# PUV-ont redefinitions because the IRI doesn't seem to parse properly
+# Source: https://github.com/CSIRO-enviro-informatics/PUV-ont/blob/main/rdf/puv.ttl
+#----------------------------------------------------------------------
+puv:BiologicalEntity
+  rdf:type owl:Class ;
+  rdfs:comment """NVS Biological entity (S25) Terms used to describe biological entities (organisms or parts thereof) in the BODC Parameter Usage Vocabulary.
+
+  See: http://vocab.nerc.ac.uk/collection/S25/
+
+  Also see: Related NVS Vocabs S09 (size), S10 (gender), S11 (stage), S12 (sub-component), S13 (sub-group), S14 (shape), S15 (colour)""" ;
+  rdfs:label "Biological entity (S25)" ;
+  rdfs:seeAlso <http://vocab.nerc.ac.uk/collection/S25/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf puv:Entity ;
+.
+puv:ChemicalEntity
+  rdf:type owl:Class ;
+  rdfs:comment """NVS Chemical substance (S27) terms for chemicals whose quantity in a matrix is determined to generate measurements in the BODC parameter usage vocabulary semantic model.
+  Includes elements, compounds, isotopes and mixtures.
+
+  See: http://vocab.nerc.ac.uk/collection/S27/
+  """ ;
+  rdfs:label "ChemicalEntity (S27)" ;
+  rdfs:seeAlso <http://vocab.nerc.ac.uk/collection/S27/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf puv:Entity ;
+.
+puv:Matrix
+  rdf:type owl:Class ;
+  rdfs:comment """NVS Matrix (S26) terms used to describe the medium in which a measurement was made in the semantic model that underpins the BODC parameter discovery vocabulary.
+
+  See: https://vocab.nerc.ac.uk/collection/S26/
+
+  Also see: Related NVS Vocabs S21 (sphere), S22 (sphere sub-group), S23 (phase), S24 (phase sub-group)
+  """ ;
+  rdfs:label "Matrix (S26)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/S26/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:allValuesFrom puv:MatrixComponent ;
+      owl:onProperty puv:isComposedOf ;
+    ] ;
+.
+puv:matrix
+  owl:equivalentProperty puv:inMatrix ;
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS Matrix (S26) term for this matrix of this observation.
+  If specified, this overrides the equivalent property on puv:parameter.
+  """ ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "matrix" ;
+  rdfs:range puv:Matrix ;
+.
+puv:MMRel
+  rdf:type owl:Class ;
+  rdfs:comment "NVS Measurement-matrix relationship (S02) terms used to describe the relationship between the 'where theme' and the 'what theme' in the BODC semantic model for measured phenomena descriptions" ;
+  rdfs:label "MMRel (S02)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/S02/> ;
+  rdfs:subClassOf skos:Concept ;
+.
+puv:matrixRelationship
+  owl:equivalentProperty puv:matrixRelationship ;
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS Measurement-matrix relationship (S02) term for this observation.
+  If specified, this overrides the equivalent property on puv:parameter.
+  """ ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "matrixRelationship" ;
+  rdfs:range puv:MMRel ;
+.
+puv:Method
+  rdf:type owl:Class ;
+  rdfs:comment "NVS Data Processing Method (S05) or AnalyticalMethod (S04) or Sample Preparation method (S03) used to make the observation" ;
+  rdfs:label "Method (NVS S03 or S04 or S05)" ;
+.
+puv:method
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
+  If specified, this overrides the equivalent property on puv:parameter.
+  """ ;
+  rdfs:label "method" ;
+  rdfs:range puv:Method ;
+.
+puv:Entity
+  rdf:type owl:Class ;
+  rdfs:comment "NVS BiologicalEntity (S25) or ChemicalEntity (S27) or PhysicalEntity (S29) being observed." ;
+  rdfs:label "Entity (NVS S25 or S27 or S29)" ;
+.
+puv:objectOfInterest
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "NVS Entity which is the object of interest for these observations. Can be a chemical, biological, or physical entity." ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "objectOfInterest" ;
+  rdfs:range puv:Entity ;
+.
+puv:PhysicalEntity
+  rdfs:type owl:Class ;
+  rdfs:comment """NVS Physical Entity (S29) terms used to describe physical entities in the BODC Parameter Usage Vocabulary.
+
+  See http://vocab.nerc.ac.uk/collection/S29/
+
+  Also see related NVS Vocabularies: S18 (name), S19 (sub-group), S20 (datum)
+  """ ;
+  rdfs:label "PhysicalEntity (NVS S29)" ;
+  rdfs:seeAlso <http://vocab.nerc.ac.uk/collection/S29/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf puv:Entity ;
+.
+puv:Property
+  rdf:type owl:Class ;
+  rdfs:comment "NVS Property (S06) terms that may be used to specify the property element of a parameter (part of the 'what' theme) in the BODC parameter semantic model" ;
+  rdfs:label "Property (NVS S06)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/S06/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf sosa:ObservableProperty ;
+.
+puv:property
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS S06 property or attribute that is being measured, which must be associated with either an object of interest or a matrix or both
+  If specified, this overrides the equivalent property on puv:parameter.
+  """ ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "property" ;
+  rdfs:range puv:Property ;
+.
+puv:ParameterStatistic
+  rdf:type owl:Class ;
+  rdfs:comment "NVS Parameter Statistic (S07)  terms that may be used for a parameter statistic (part of the what theme) in the BODC parameter semantic model" ;
+  rdfs:label "ParameterStatistic (NVS S07)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/S07/> ;
+  rdfs:subClassOf skos:Concept ;
+.
+puv:statistic
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS S07 term that describes the statistical treatment of the observation.
+  If specified, this overrides the equivalent property on puv:parameter.
+  """ ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "statistic" ;
+  rdfs:range puv:ParameterStatistic ;
+.
+puv:UnitOfMeasurement
+  owl:equivalentClass qudt:Unit ;
+  rdf:type owl:Class ;
+  rdfs:comment "NVS Unit of Measurement (P06) terms approved for use by BODC to describe the measurement units for data held in its repositories." ;
+  rdfs:label "UnitOfMeasurement (NVS P06)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/P06/> ;
+  rdfs:subClassOf skos:Concept ;
+.
+puv:uom
+  owl:equivalentProperty qudt:unit ;
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment """Reference to the NVS P06 term that specifies the scale or unit of measurement for the observation.
+  If specified, this overrides the equivalent property on puv:parameter.
+
+  If no suitable puv:Unit exists, then use qudt:unit (targetting a qudt:Unit resource) instead.
+  """ ;
+  rdfs:label "uom" ;
+  rdfs:range puv:UnitOfMeasurement ;
+.
+
+puv:Parameter
+  rdf:type owl:Class ;
+  rdfs:comment "Terms built using the BODC parameter semantic model designed to describe individual measured phenomena. May be used to mark up sets of data such as a NetCDF array or spreadsheet column" ;
+  rdfs:comment "Scientific variable in databases and data files" ;
+  rdfs:label "Parameter (NVS P01)" ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/P01/> ;
+  rdfs:subClassOf skos:Concept ;
+  rdfs:subClassOf sosa:ObservableProperty ;
+.
+puv:parameter
+  owl:equivalentProperty sosa:observedProperty ;
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "The NVS P01 Parameter that this Observation should inherit other NVS-related properties from. These properties can then be overridden if necessary." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "parameter" ;
+  rdfs:range puv:Parameter ;
+  rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/P01/> ;
 .

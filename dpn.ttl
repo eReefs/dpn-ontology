@@ -10,11 +10,11 @@
 
 @prefix cc: <http://creativecommons.org/ns#> .
 @prefix dc: <http://purl.org/dc/terms/> .
-@prefix dc-elem: <http://purl.org/dc/elements/1.1/> .
+@prefix j.0: <http://purl.org/dc/elements/1.1/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
-@prefix dpn: <http://purl.org/dpn#> .
-@prefix dpnd: <http://purl.org/dpn/dataset#> .
-@prefix dpns: <http://purl.org/dpn/services#> .
+@prefix dpn: <http://purl.org/dpn/v0.8#> .
+@prefix dpnd: <http://purl.org/dpn/dataset/v0.8#> .
+@prefix dpns: <http://purl.org/dpn/services/v0.8#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix hr: <http://www.wsmo.org/ns/hrests#> .
 @prefix msm: <http://iserve.kmi.open.ac.uk/ns/msm#> .
@@ -41,16 +41,16 @@
   vann:preferredNamespaceUri "http://purl.org/dpn#" ;
   rdfs:comment "This ontology is being developed by CSIRO for describing data provider nodes, web services available and datasets that are hosted by them. This ontology features a module for describing Datasets. It does not however describe geospatial, temporal, organisational or domain concepts as these are intended to be included from other ontologies via the imports statement. Other modules complementary to the DPN ontology are     http://purl.org/dpn/dataset and http://purl.org/dpn/services. This version aligns DCAT and DC terms and imports DPN services." ;
   rdfs:label "Data Provider Node ontology" ;
-  owl:imports <http://purl.org/dpn/dataset> ;
-  owl:imports <http://purl.org/dpn/services> ;
+  owl:imports <http://purl.org/dpn/dataset/v0.8> ;
+  owl:imports <http://purl.org/dpn/services/v0.8> ;
   owl:imports <http://www.w3.org/2004/02/skos/core> ;
   owl:imports <http://www.w3.org/2006/vcard/ns> ;
   owl:imports <http://www.w3.org/ns/dcat> ;
   owl:imports <http://www.w3.org/ns/org> ;
   owl:imports foaf: ;
-  owl:priorVersion <http://purl.org/dpn/v0.7.1> ;
-  owl:versionIRI <http://purl.org/dpn/v0.7.2> ;
-  owl:versionInfo "v 0.7.2 19/12/2017 Jonathan Yu" ;
+  owl:priorVersion <http://purl.org/dpn/v0.7.2> ;
+  owl:versionIRI <http://purl.org/dpn/v0.8> ;
+  owl:versionInfo "eReefs Phase 5 2022" ;
   skos:changeNote "Additional alignments with DCAT added by SJDC - 2016-06-16" ;
 .
 dpn:Catalog
@@ -202,8 +202,8 @@ dpn:Service
   owl:disjointWith dpn:Catalog ;
   owl:disjointWith dpn:Node ;
   owl:disjointWith org:Organization ;
-  owl:versionInfo """Remove 
-        dpn:service owl:equivalentClass dcat:WebService . 
+  owl:versionInfo """Remove
+        dpn:service owl:equivalentClass dcat:WebService .
 since the latter is officially deprecated""" ;
   skos:example "Example of a member of the class?" ;
 .
@@ -333,7 +333,8 @@ dpn:service
   rdfs:label "service" ;
   rdfs:range dpn:Service ;
 .
-dpnd:ObservationalDataset
+dpnd:Observation
+  rdfs:label "Observation" ;
   rdfs:subClassOf dpn:Dataset ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
