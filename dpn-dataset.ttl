@@ -187,7 +187,7 @@ puv:matrix
   owl:equivalentProperty puv:inMatrix ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS Matrix (S26) term for this matrix of this observation.
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:domain puv:Parameter ;
   rdfs:label "matrix" ;
@@ -204,7 +204,7 @@ puv:matrixRelationship
   owl:equivalentProperty puv:matrixRelationship ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS Measurement-matrix relationship (S02) term for this observation.
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:domain puv:Parameter ;
   rdfs:label "matrixRelationship" ;
@@ -218,7 +218,7 @@ puv:Method
 puv:method
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:label "method" ;
   rdfs:range puv:Method ;
@@ -259,7 +259,7 @@ puv:Property
 puv:property
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS S06 property or attribute that is being measured, which must be associated with either an object of interest or a matrix or both
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:domain puv:Parameter ;
   rdfs:label "property" ;
@@ -275,7 +275,7 @@ puv:ParameterStatistic
 puv:statistic
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS S07 term that describes the statistical treatment of the observation.
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:domain puv:Parameter ;
   rdfs:label "statistic" ;
@@ -293,7 +293,7 @@ puv:uom
   owl:equivalentProperty qudt:unit ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS P06 term that specifies the scale or unit of measurement for the observation.
-  If specified, this overrides the equivalent property on puv:parameter.
+  This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
 
   If no suitable puv:Unit exists, then use qudt:unit (targetting a qudt:Unit resource) instead.
   """ ;
