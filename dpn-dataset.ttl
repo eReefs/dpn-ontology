@@ -9,7 +9,9 @@
 @prefix j.0: <http://purl.org/dc/elements/1.1/> .
 @prefix dpn: <http://purl.org/dpn/v0.8#> .
 @prefix dpnd: <http://purl.org/dpn/dataset#> .
+@prefix dpnd_old: <http://purl.org/dpn/dataset/v0.7.2> .
 @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix op: <http://environment.data.gov.au/def/op#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix puv: <https://w3id.org/env/puv#> .
 @prefix qudt: <http://qudt.org/schema/qudt/> .
@@ -26,6 +28,7 @@
   rdfs:comment "This ontology is being developed by CSIRO under the eReefs project for describing datasets, such as observational datasets. It imports the observable properties ontology which allows description of feature, substance or taxon, and quantity kinds." ;
   owl:imports dpn: ;
   owl:imports geo: ;
+  owl:imports op: ;
   owl:imports puv: ;
   owl:imports qudt: ;
   owl:imports sosa: ;
@@ -167,6 +170,7 @@ puv:ChemicalEntity
   rdfs:subClassOf puv:Entity ;
 .
 puv:Matrix
+  owl:equivalentClass dpnd_old:Medium ;
   rdf:type owl:Class ;
   rdfs:comment """NVS Matrix (S26) terms used to describe the medium in which a measurement was made in the semantic model that underpins the BODC parameter discovery vocabulary.
 
@@ -184,9 +188,11 @@ puv:Matrix
     ] ;
 .
 puv:matrix
-  owl:equivalentProperty puv:inMatrix ;
+  owl:equivalentProperty dpnd_old:relatedMedium ;
+  owl:equivalentProperty op:matrix ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment """Reference to the NVS Matrix (S26) term for this matrix of this observation.
+  rdfs:comment """The context / container / medium within which the property of an entity is observed.
+  Reference to the NVS Matrix (S26) term for this matrix of this observation.
   This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:domain puv:Parameter ;
@@ -216,19 +222,32 @@ puv:Method
   rdfs:label "Method (NVS S03 or S04 or S05)" ;
 .
 puv:method
+  owl:equivalentProperty op:procedure
   rdf:type owl:ObjectProperty ;
-  rdfs:comment """Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
+  rdfs:comment """The procedure or sensor system used in making the observation or estimate of property value.
+  Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
   This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
   rdfs:label "method" ;
   rdfs:range puv:Method ;
 .
 puv:Entity
+  owl:equivalentClass op:SubstanceOrTaxon ;
+  owl:equivalentClass op:Substance ;
+  owl:equivalentClass op:Taxon ;
   rdf:type owl:Class ;
   rdfs:comment "NVS BiologicalEntity (S25) or ChemicalEntity (S27) or PhysicalEntity (S29) being observed." ;
   rdfs:label "Entity (NVS S25 or S27 or S29)" ;
 .
 puv:objectOfInterest
+  owl:equivalentProperty dpnd_old:relatedFeature ;
+  owl:equivalentProperty dpnd_old:relatedSubstanceOrTaxon ;
+  owl:equivalentProperty op:featureOfInterest ;
+  owl:equivalentProperty op:objectOfInterest ;
+  owl:equivalentProperty puv:biologicalObject ;
+  owl:equivalentProperty puv:chemicalObject ;
+  owl:equivalentProperty puv:physicalObject ;
+  owl:equivalentProperty qudt:generalization ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment "NVS Entity which is the object of interest for these observations. Can be a chemical, biological, or physical entity." ;
   rdfs:domain puv:Parameter ;
@@ -249,6 +268,9 @@ puv:PhysicalEntity
   rdfs:subClassOf puv:Entity ;
 .
 puv:Property
+  owl:equivalentClass op:QualityKind ;
+  owl:equivalentClass op:ScaledQuantityKind ;
+  owl:equivalentClass qudt:QuantityKind;
   rdf:type owl:Class ;
   rdfs:comment "NVS Property (S06) terms that may be used to specify the property element of a parameter (part of the 'what' theme) in the BODC parameter semantic model" ;
   rdfs:label "Property (NVS S06)" ;
@@ -257,6 +279,8 @@ puv:Property
   rdfs:subClassOf sosa:ObservableProperty ;
 .
 puv:property
+  owl:equivalentProperty dpnd_old:relatedQuantityKind ;
+  owl:equivalentProperty qudt:hasQuantityKind ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS S06 property or attribute that is being measured, which must be associated with either an object of interest or a matrix or both
   This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
@@ -302,15 +326,18 @@ puv:uom
 .
 
 puv:Parameter
+  owl:equivalentClass op:PropertyKind ;
+  owl:equivalentClass sosa:ObservableProperty ;
+  owl:equivalentClass sosa:FeatureOfInterest ;
   rdf:type owl:Class ;
   rdfs:comment "Terms built using the BODC parameter semantic model designed to describe individual measured phenomena. May be used to mark up sets of data such as a NetCDF array or spreadsheet column" ;
   rdfs:comment "Scientific variable in databases and data files" ;
   rdfs:label "Parameter (NVS P01)" ;
   rdfs:seeAlso <https://vocab.nerc.ac.uk/collection/P01/> ;
   rdfs:subClassOf skos:Concept ;
-  rdfs:subClassOf sosa:ObservableProperty ;
 .
 puv:parameter
+  owl:equivalentProperty op:property ;
   owl:equivalentProperty sosa:observedProperty ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment "The NVS P01 Parameter that this Observation should inherit other NVS-related properties from. These properties can then be overridden if necessary." ;
