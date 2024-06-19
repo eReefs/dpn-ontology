@@ -222,7 +222,7 @@ puv:Method
   rdfs:label "Method (NVS S03 or S04 or S05)" ;
 .
 puv:method
-  owl:equivalentProperty op:procedure
+  owl:equivalentProperty op:procedure ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """The procedure or sensor system used in making the observation or estimate of property value.
   Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
