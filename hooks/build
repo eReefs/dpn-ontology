@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Derive some useful variables from the build environment
+# (Automated dockerhub builds may provide some of these)
+DOCKER_TAG="${DOCKER_TAG:-latest}"
+DOCKERFILE_PATH="${DOCKERFILE_PATH:-server/Dockerfile}"
+DOCKER_REPO="${DOCKER_REPO:-ereefs/dpn-ontology}"
+if [ -z "${IMAGE_NAME}" ]; then
+    IMAGE_NAME="${DOCKER_REPO}:${DOCKER_TAG}"
+fi
+
+BUILD_TIMESTAMP="$(date --rfc-3339=seconds)"
+SAFE_TIMESTAMP="$(echo $BUILD_TIMESTAMP | sed 's/ /T/g' | sed 's/:/-/g' | sed 's/\+.*//')"
+
+if [ -z "${SOURCE_BRANCH}" ]; then
+    SOURCE_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+fi
+if [ -z "${SOURCE_COMMIT}" ]; then
+    SOURCE_COMMIT="$(git rev-parse --short HEAD)"
+fi
+if [ -z "${SOURCE_URL}" ]; then
+    SOURCE_URL="$(git remote get-url origin || true)"
+fi
+VERSION_TAG=$(echo "${SOURCE_BRANCH}_v${SAFE_TIMESTAMP}-${SOURCE_COMMIT}" | tr '[:upper:]' '[:lower:]')
+if [[ "${DOCKER_TAG}" != "latest" ]]; then
+    VERSION_TAG="${DOCKER_TAG}_${VERSION_TAG}"
+fi
+
+# Build our customised docker image, using the 
+# passed-in docker tag as the ontology version.
+docker build --pull \
+    --build-arg "ONTOLOGY_VERSION=${DOCKER_TAG}" \
+    --label "org.opencontainers.image.authors=${BUILD_AUTHORS:-CSIRO eReefs Team}" \
+    --label "org.opencontainers.image.branch=${SOURCE_BRANCH}" \
+    --label "org.opencontainers.image.buildhost=${DOCKER_REPO}" \
+    --label "org.opencontainers.image.created=${BUILD_TIMESTAMP}" \
+    --label "org.opencontainers.image.licenses=CC-BY-4.0" \
+    --label "org.opencontainers.image.revision=${SOURCE_COMMIT}" \
+    --label "org.opencontainers.image.source=${SOURCE_URL}" \
+    --label "org.opencontainers.image.title=${DOCKER_REPO}" \
+    --label "org.opencontainers.image.url=https://github.com/eReefs/dpn-ontology" \
+    --label "org.opencontainers.image.vendor=CSIRO" \
+    --label "org.opencontainers.image.version=${VERSION_TAG}" \
+    -f ${DOCKERFILE_PATH} \
+    -t ${IMAGE_NAME} \
+    .
