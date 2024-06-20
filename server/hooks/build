@@ -32,9 +32,6 @@ if [ -z "${SOURCE_URL}" ]; then
     SOURCE_URL="$(git remote get-url origin || true)"
 fi
 VERSION_TAG=$(echo "${SOURCE_BRANCH}_v${SAFE_TIMESTAMP}-${SOURCE_COMMIT}" | tr '[:upper:]' '[:lower:]')
-if [[ "${DOCKER_TAG}" != "latest" ]]; then
-    VERSION_TAG="${DOCKER_TAG}_${VERSION_TAG}"
-fi
 
 # Build our customised docker image, using the 
 # passed-in docker tag as the ontology version.
