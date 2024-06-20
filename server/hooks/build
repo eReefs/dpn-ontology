@@ -5,6 +5,12 @@
 DOCKER_TAG="${DOCKER_TAG:-latest}"
 DOCKERFILE_PATH="${DOCKERFILE_PATH:-server/Dockerfile}"
 DOCKER_CONTEXT="."
+if [[ ! -f "${DOCKER_CONTEXT}/${DOCKERFILE_PATH}}" ]] && [[ -f "./Dockerfile" ]]; then
+    # Dockerhub automated builds are unhelpful and launch with the location
+    # of the Dockerfile as their working directory. Try to fix it
+    cd ..
+fi
+
 DOCKER_REPO="${DOCKER_REPO:-ereefs/dpn-ontology}"
 if [ -z "${IMAGE_NAME}" ]; then
     IMAGE_NAME="${DOCKER_REPO}:${DOCKER_TAG}"
