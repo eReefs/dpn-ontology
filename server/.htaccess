@@ -18,42 +18,65 @@ RewriteRule  ^.*(extract|source|client/[^/]+)$  $1  [P,L]
 
 # Derive a variable that can be used to ensure any redirects properly
 # respect any X-Forwarded- headers passed with this request
-RewriteRule (.*) - [E=BASEURL:%{ENV:ENDPOINT}]
+RewriteCond %{HTTPS} ^on$
+RewriteRule (.*) - [E=BASEURL:https://%{HTTP_HOST}%{ENV:PATH_PREFIX}]
+
+RewriteCond %{HTTPS} !^on$
+RewriteRule (.*) - [E=BASEURL:http://%{HTTP_HOST}%{ENV:PATH_PREFIX}]
 
 RewriteCond %{HTTP:X-Forwarded-Proto}  !^$
 RewriteCond %{HTTP:X-Forwarded-Host}  !^$
-RewriteRule (.*) - [E=BASEURL:%{HTTP:X-Forwarded-Proto}://%{HTTP:X-Forwarded-Host}%{ENV:ENDPOINT}]
+RewriteRule (.*) - [E=BASEURL:%{HTTP:X-Forwarded-Proto}://%{HTTP:X-Forwarded-Host}%{ENV:PATH_PREFIX}]
 
-# If there is a recognised directory-path that is NOT the prefix,
-# Redirect to a URL with sections in the correct order
+# The permalinks for this ontology have URL paths like
+# `/dpn/${VERSION}`, `/dpn/dataset/${VERSION}`, `/dpn/services/${VERSION}`
+# which do not match the deployed directory structure or filenames.
+# Manipulate URLs matching that pattern into the new patterns, like:
+# `/${VERSION}/dpn`, `/${VERSION}/dpn-dataset`, `/${VERSION}/dpn-services`.
+# (This may take several redirects!)
 RewriteRule  ^(.+)/(v\d[\.\d]*|current|latest)/?(.*)/?$  "%{ENV:BASEURL}/$2/$1$3"  [R=303,L]
-
-# If nothing is requested, or *only* a recognised directory-path is requested,
-# redirect to the top-level dpn namespace: this acts as the directory index.
-RewriteRule  ^(v\d[\.\d]*|current|latest)?/?$  "%{ENV:BASEURL}/$1/dpn"  [R=303,L]
-
-# Redirect purl.org-style dpn/dataset and dpn/services paths to dpn-dataset and dpn-services
 RewriteRule  ^(.*)dpn/(dataset|services)(.*)$  "%{ENV:BASEURL}/$1dpn-$2$3" [R=303,L]
 
-# If there is no recognised directory-path in the url,
-# Or if the directory path is `current` AND a current version
-# has been configured via an environment variable, then
-# alias (rather than redirect) to the configured current version
-RewriteCond  "%{ENV:CURRENT_VERSION}"  !^$
-RewriteRule  ^(dpn(-dataset|-services).*)$  "%{ENV:CURRENT_VERSION}/$1" [PT]
+# If the URL path is empty or *only* a version-path, redirect to the `dpn`
+# file for that ontology-version as a directory index.
+RewriteRule  ^/?$  "%{ENV:BASEURL}/dpn"  [R=303,L]
+RewriteRule  ^(v\d[\.\d]*|current|latest)/?$  "%{ENV:BASEURL}/$1/dpn"  [R=303,L]
 
+# If there is no recognised directory-path in the url,
+# then redirect to the current/default version or to the
+# latest version in order of preference (only they are set)
 RewriteCond  "%{ENV:CURRENT_VERSION}"  !^$
+RewriteRule  ^(dpn(-dataset|-services)?.*)$  "%{ENV:BASEURL}/current/$1" [R=303,L]
+
+RewriteCond  "%{ENV:CURRENT_VERSION}"  ^$
+RewriteCond  "%{ENV:LATEST_VERSION}"   !^$
+RewriteRule  ^(dpn(-dataset|-services)?.*)$  "%{ENV:BASEURL}/latest/$1" [R=303,L]
+
+# From this point, we should have the correct URL structure,
+# so stop redirecting to things and start working out what 
+# to serve up:
+
+# Handle the configured `current` version being a runtime alias:
+RewriteCond  "%{ENV:CURRENT_VERSION}"  !^$
+RewriteCond  "%{ENV:CURRENT_VERSION}"  !^current$
 RewriteRule  ^current/(.*)$  "%{ENV:CURRENT_VERSION}/$1"  [PT]
 
-# For requests that now match an actual file-path exactly: serve that file
+# Handle the configured `latest` version being a runtime alias:
+RewriteCond  "%{ENV:LATEST_VERSION}"  !^$
+RewriteCond  "%{ENV:LATEST_VERSION}"  !^latest$
+RewriteRule  ^latest/(.*)$  "%{ENV:LATEST_VERSION}/$1"  [PT]
+
+# For requests that now match an actual file-path exactly, 
+# including the file-extension, serve that file up without
+# reference to any content-type headers in the request.
 RewriteCond  %{REQUEST_FILENAME}  -d [OR]
 RewriteCond  %{REQUEST_FILENAME}  -f [OR]
 RewriteCond  %{REQUEST_FILENAME}  -l
 RewriteRule  ^.*$  -  [END]
 
 # For extensionless file requests of the DPN ontology files,
-# Derive the file expension that best matches the requested
-# MIME type, and attempt to serve that up.
+# it's content-negotiation time. Pick the file extension 
+# that best matche the requested MIME type:
 
 # text/turtle => serve the .ttl file if it exists
 RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
@@ -62,7 +85,25 @@ RewriteCond  %{REQUEST_FILENAME}.ttl -f [OR]
 RewriteCond  %{REQUEST_FILENAME}.ttl -l
 RewriteRule  ^(.*)$  $1.ttl [T=text/turtle,END]
 
-# text/html, application/xhtml+xml => serve the .htm file if it exists
+# text/html, application/xhtml+xml
+# If LODE_BASEURL is configured, use that for rendering
+# the .ttl file to HTML, as either proxy or redirect.
+# If LODE_BASEURL is NOT configured, but a local
+# pre-rendered .html file is present, serve that.
+RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
+RewriteCond  %{HTTP_ACCEPT}  text/html [OR]
+RewriteCond  %{HTTP_ACCEPT}  application/xhtml\+xml
+RewriteCond  "%{ENV:LODE_BASEURL}"  !^$
+RewriteCond  "%{ENV:LODE_PROXY}"  ^true$
+RewriteRule  ^(.*)$  "%{ENV:LODE_BASEURL}/extract?module=owlapi&url=%{ENV:BASEURL}/$1.ttl"  [P,T=text/html,L]
+
+RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
+RewriteCond  %{HTTP_ACCEPT}  text/html [OR]
+RewriteCond  %{HTTP_ACCEPT}  application/xhtml\+xml
+RewriteCond  "%{ENV:LODE_BASEURL}"  !^$
+RewriteCond  "%{ENV:LODE_PROXY}"  !^true$
+RewriteRule  ^(.*)$  "%{ENV:LODE_BASEURL}/extract?module=owlapi&url=%{ENV:BASEURL}/$1.ttl"  [R=303,L]
+
 RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
 RewriteCond  %{HTTP_ACCEPT}  text/html [OR]
 RewriteCond  %{HTTP_ACCEPT}  application/xhtml\+xml
@@ -70,15 +111,8 @@ RewriteCond  %{REQUEST_FILENAME}.htm -f [OR]
 RewriteCond  %{REQUEST_FILENAME}.htm -l
 RewriteRule  ^(.*)$  $1.htm [T=text/html,END]
 
-# text/html, application/xhtml+xml => Reverse proxy to LODE, if that is configured
+# RDF or any other un-matched MIME types => default to 
+# Serving up the RDF, because at least it renders in the browser, 
+# (unlike text/turtle, which defaults to downloading)
 RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
-RewriteCond  %{HTTP_ACCEPT}  text/html [OR]
-RewriteCond  %{HTTP_ACCEPT}  application/xhtml\+xml
-RewriteCond  "%{ENV:LODE_BASEURL}"  ^http
-RewriteRule  ^(.*)$  "%{ENV:LODE_BASEURL}/extract?module=owlapi&url=%{ENV:BASEURL}/$1.ttl"  [R=303,T=text/html,L]
-
-# Any other extensionless requests => Try to serve up the RDF
-# (It's the default because it renders in the browser, 
-# unlike text/turtle, which defaults to downloading)
-RewriteCond  %{REQUEST_URI}  dpn(-dataset|-services)?$
-RewriteRule  ^(.*)$  $1.rdf  [R=303,T=application/rdf+xml,END]
+RewriteRule  ^(.*)$  $1.rdf  [T=application/rdf+xml,END]
