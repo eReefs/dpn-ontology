@@ -3,15 +3,15 @@
 # Derive some useful variables from the build environment
 # (Automated dockerhub builds may provide some of these)
 DOCKER_TAG="${DOCKER_TAG:-latest}"
-DOCKERFILE_PATH="${DOCKERFILE_PATH:-.server/Dockerfile}"
-DOCKERFILE_DIR=$(dirname "${DOCKERFILE_PATH}")
-DOCKER_CONTEXT=$(realpath "${DOCKERFILE_DIR}/../")
+DOCKERFILE_PATH="${DOCKERFILE_PATH:-server/Dockerfile}"
+DOCKER_CONTEXT="."
 DOCKER_REPO="${DOCKER_REPO:-ereefs/dpn-ontology}"
 if [ -z "${IMAGE_NAME}" ]; then
     IMAGE_NAME="${DOCKER_REPO}:${DOCKER_TAG}"
 fi
 
-echo "Building ${IMAGE_NAME} with ${DOCKERFILE_PATH} from ${DOCKER_CONTEXT}"
+echo "Building ${IMAGE_NAME} with ${DOCKERFILE_PATH} from $(pwd) with context=${DOCKER_CONTEXT}"
+ls -al
 
 BUILD_TIMESTAMP="$(date --rfc-3339=seconds)"
 SAFE_TIMESTAMP="$(echo $BUILD_TIMESTAMP | sed 's/ /T/g' | sed 's/:/-/g' | sed 's/\+.*//')"
