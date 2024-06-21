@@ -17,7 +17,6 @@ if [ -z "${IMAGE_NAME}" ]; then
 fi
 
 echo "Building ${IMAGE_NAME} with ${DOCKERFILE_PATH} from $(pwd) with context=${DOCKER_CONTEXT}"
-ls -al
 
 BUILD_TIMESTAMP="$(date --rfc-3339=seconds)"
 SAFE_TIMESTAMP="$(echo $BUILD_TIMESTAMP | sed 's/ /T/g' | sed 's/:/-/g' | sed 's/\+.*//')"
@@ -31,12 +30,14 @@ fi
 if [ -z "${SOURCE_URL}" ]; then
     SOURCE_URL="$(git remote get-url origin || true)"
 fi
-VERSION_TAG=$(echo "${SOURCE_BRANCH}_v${SAFE_TIMESTAMP}-${SOURCE_COMMIT}" | tr '[:upper:]' '[:lower:]')
+
+ONTOLOGY_VERSION=$(cat dpn.ttl | grep owl:versionIRI | sed 's|.*\(v[[:digit:]]*[.[:digit:]]*\).*|\1|')
+VERSION_TAG=$(echo "${ONTOLOGY_VERSION}_v${SAFE_TIMESTAMP}-${SOURCE_COMMIT}")
 
 # Build our customised docker image, using the 
 # passed-in docker tag as the ontology version.
 docker build --pull \
-    --build-arg "ONTOLOGY_VERSION=${DOCKER_TAG}" \
+    --build-arg "ONTOLOGY_VERSION=${ONTOLOGY_VERSION}" \
     --label "org.opencontainers.image.authors=${BUILD_AUTHORS:-CSIRO eReefs Team}" \
     --label "org.opencontainers.image.branch=${SOURCE_BRANCH}" \
     --label "org.opencontainers.image.buildhost=${DOCKER_REPO}" \
