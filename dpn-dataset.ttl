@@ -1,13 +1,11 @@
 # baseURI: http://purl.org/dpn/dataset
-# imports: http://www.w3.org/2003/01/geo/wgs84_pos
-# imports: http://www.w3.org/2006/time
-# imports: http://w3id.org/env/puv
+# imports: http://purl.org/dpn
 # prefix: dpnd
 
 @prefix dc: <http://purl.org/dc/terms/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix j.0: <http://purl.org/dc/elements/1.1/> .
-@prefix dpn: <http://purl.org/dpn/v0.8#> .
+@prefix dpn: <http://purl.org/dpn/v0.9#> .
 @prefix dpnd: <http://purl.org/dpn/dataset#> .
 @prefix dpnd_old: <http://purl.org/dpn/dataset/v0.7.2> .
 @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
@@ -33,11 +31,9 @@
   owl:imports qudt: ;
   owl:imports sosa: ;
   owl:imports time: ;
-  owl:priorVersion <http://purl.org/dpn/dataset/v0.7.2> ;
-  owl:versionIRI <http://purl.org/dpn/dataset/v0.8> ;
-  owl:versionInfo "v0.8 eReefs Phase 5 2022" ;
-  skos:changeNote "Additional alignment to OWL-Time added by SJDC - 2016-06-16" ;
-  skos:changeNote "Incorporation of PUV-Ont added by ST - 2022-04 for eReefs Phase 5" ;
+  owl:priorVersion <http://purl.org/dpn/dataset/v0.8> ;
+  owl:versionIRI <http://purl.org/dpn/dataset/v0.9> ;
+  owl:versionInfo "v0.9 eReefs Phase 6a 2025" ;
 .
 
 dpnd:BoundingBox
