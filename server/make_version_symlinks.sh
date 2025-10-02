@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+ONTOLOGY_BASE="${ONTOLOGY_BASE:-}"
+if [ -d "${ONTOLOGY_BASE}" ]; then
+  cd "${ONTOLOGY_BASE}"
+fi
+
 for SUBDIR in $(find ./ -maxdepth 1 -type d -name 'v*' | sort); do
   FULL_VERSION=$(basename "${SUBDIR}")
   VERSION1=$(echo $FULL_VERSION | sed 's/.*\(v[[:digit:]]\+\).*/\1/')
