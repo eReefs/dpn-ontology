@@ -81,12 +81,45 @@ dpns:CSW
   rdfs:subClassOf dpn:MetadataServiceInterface ;
   rdfs:subClassOf dpn:CatalogServiceInterface ;
 .
+dpns:DublinCore
+  rdf:type owl:Class ;
+  dc:source <http://purl.org/dc/terms> ;
+  rdfs:comment """A general-purpose metadata vocabulary for describing resources of any type.""" ;
+  rdfs:comment "See also: <https://en.wikipedia.org/wiki/Dublin_Core>" ;
+  rdfs:label "Dublin Core Metadata Terms (DCMT)" ;
+  skos:altLabel "DMCT";
+  rdfs:subClassOf dpn:MetadataServiceInterface ;
+.
 dpns:HTTP
   rdf:type owl:Class ;
-  rdfs:comment "Data or metadata information formatted for display in a web browser" ;
+  rdfs:comment "In a DPN context, a HTTP Data Service Interface makes the data available for download over HTTP, rather than implementing a documented query interface." ;
   rdfs:label "HyperText Transfer Protocol (HTTP)" ;
   skos:altLabel "HTTP";
   rdfs:subClassOf dpn:DataServiceInterface ;
+.
+dpns:ISO
+  rdf:type owl:Class ;
+  dc:source <https://standards.iso.org/iso/19115/> ;
+  dc:source <https://standards.iso.org/iso/19139/> ;
+  rdfs:comment """International Metadata standard for describing GeoSpatial Information.
+  The metadata standard itself is ISO-19115 (<https://standards.iso.org/iso/19115>),
+  while ISO-19139 (<https://standards.iso.org/iso/19139/>) describes a schema for
+  representing ISO-19115 metadata in XML format.""" ;
+  rdfs:comment "See also: <https://en.wikipedia.org/wiki/Geospatial_metadata>" ;
+  rdfs:label "ISO-19115 Metadata Standard" ;
+  rdfs:label "ISO-19139 Metadata Implementation Schema" ;
+  skos:altLabel "ISO";
+  rdfs:subClassOf dpn:MetadataServiceInterface ;
+.
+dpns:NcWMS
+  rdf:type owl:Class ;
+  dc:source <https://reading-escience-centre.gitbooks.io/ncwms-user-guide/> ;
+  rdfs:comment """Extension of the OGC WMS protocol for multidimensional scientific datasets.
+  Supports all of the WMS Standard, and several additional endpoints: `GetTimeseries`, `GetVerticalProfile`,
+  `GetTransect`, `GetMetadata` and `GetLegendGraphic`.""";
+  rdfs:label "Netcdf Web Mapping Service (NcWMS)" ;
+  skos:altLabel "NcWMS";
+  rdfs:subClassOf dpns:WMS ;
 .
 dpns:NetcdfSubset
   rdf:type owl:Class ;
@@ -197,10 +230,9 @@ dpns:GeoNetwork
   rdf:type owl:Class ;
   dc:source <https://geonetwork-opensource.org/> ;
   rdfs:comment """GeoNetwork is a an open source geospatial metadata catalog server.
-  A geoserver instance usually hosts detailed metadata records for datasets hosted
-  elsewhere. It supports DublinCore and ISO-standard metadata records and a CSW API
-  interface out of the box, and may also be extended to support additional metadata
-  profiles by use of plugins.""" ;
+  A geoserver instance usually hosts detailed metadata records for datasets hosted  elsewhere, but may also
+  support direct downloads of small datasets. It supports DublinCore and ISO-standard metadata records and a CSW API
+  interface out of the box, and may also be extended to support additional metadata profiles by use of plugins.""" ;
   rdfs:label "GeoNetwork Server" ;
   skos:altLabel "GeoNetwork";
   rdfs:subClassOf dpn:Service ;
@@ -208,6 +240,16 @@ dpns:GeoNetwork
       rdf:type owl:Restriction ;
       owl:onProperty dpn:implements ;
       owl:someValuesFrom dpns:CSW ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:DublinCore ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:ISO ;
     ] ;
 .
 # endregion
@@ -224,6 +266,11 @@ dpns:GeoServer
   rdfs:label "GeoServer" ;
   skos:altLabel "GeoServer";
   rdfs:subClassOf dpn:Service ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:CSW ;
+    ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:implements ;
@@ -335,12 +382,23 @@ dpns:SISSVocService
 dpns:THREDDS
   rdf:type owl:Class ;
   dc:source <https://www.unidata.ucar.edu/software/tds> ;
-  rdfs:comment """THREDDS is a web server that provides metadata and data access for scientific datasets,
-  using a variety of remote data access protocols, including OpenDAP, WMS and WCS""" ;
+  rdfs:comment """THREDDS is a web server that provides data-query-interfaces for scientific datasets,
+  using a variety of remote data access protocols, including OpenDAP, NcWMS and WCS. It may optionally expose
+  raw data files for direct download via HTTP, and ISO-formatted metadata records.""" ;
   rdfs:label "THREDDS Data Server" ;
   skos:altLabel "THREDDS";
   skos:altLabel "TDS";
   rdfs:subClassOf dpn:Service ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:HTTP ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:ISO ;
+    ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:implements ;
@@ -354,7 +412,12 @@ dpns:THREDDS
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:implements ;
-      owl:someValuesFrom dpns:WMS ;
+      owl:someValuesFrom dpns:NCSS ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:NcWMS ;
     ] ;
 .
 # endregion
