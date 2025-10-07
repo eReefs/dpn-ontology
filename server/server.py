@@ -216,7 +216,7 @@ class OntologyResource:
             if conversion_source and target_type in ['text/html', 'application/xhtml+xml']:
                 # Use pyLODE to convert the ontology resource to human-readable HTML.
                 _logger.info(f"Using pyLODE to convert '{conversion_source}' to HTML for '{req.path}' of type '{target_type}'")
-                sort_subjects = req.get_param_as_bool('sort', required=False, blank_as_true=True, default=True)
+                sort_subjects = req.get_param_as_bool('sort', required=False, blank_as_true=False, default=False)
                 ontology_doc = OntPub(conversion_source, sort_subjects=sort_subjects)
                 resp.text = ontology_doc.make_html(include_css=True)
                 resp.set_header("content-type", target_type)
@@ -257,7 +257,7 @@ class OntologyResourceAlias:
             raise falcon.HTTPNotFound(description=f"Invalid ontology resource '{req.path}'")
         else:
             _logger.warning(f"Requested path '{req.path}' is an alias for '{effective_path}'. Redirecting.")
-            raise falcon.HTTPSeeOther(location=f'{PATH_PREFIX}effective_path')
+            raise falcon.HTTPSeeOther(location=f'{PATH_PREFIX}{effective_path}')
 
 class RemoteResource:
     """Falcon Request Handler that deals with redirects to remote resources of any type."""
