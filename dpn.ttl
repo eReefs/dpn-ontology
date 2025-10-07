@@ -403,9 +403,9 @@ dpn:ObservationServiceInterface
 .
 dpn:ProvenanceServiceInterface
   rdf:type owl:Class ;
-  rdfs:comment "A Provenance Service Interface can be used to retrieve provenance information for Datasets." ;
+  rdfs:comment "A Provenance Service Interface can be used to retrieve provenance information for Datasets" ;
   rdfs:label "Provenance Service Interface" ;
-  rdfs:subClassOf dpn:ServiceInterface ;
+  rdfs:subClassOf dpn:MetadataServiceInterface ;
 .
 dpn:VocabularyServiceInterface
   rdf:type owl:Class ;

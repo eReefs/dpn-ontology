@@ -143,6 +143,17 @@ dpns:OPeNDAP
   rdfs:subClassOf dpn:MetadataServiceInterface ;
   rdfs:subClassOf dpn:ObservationServiceInterface ;
 .
+dpns:PROV
+  rdf:type owl:Class ;
+  dc:source <http://www.w3.org/ns/prov> ;
+  rdfs:comment """World-Wide-Web Consortium (W3C) recommended method for representing dataset provenance in a machine-readable metadata record.""" ;
+  rdfs:comment "See also: <https://www.w3.org/TR/prov-dm/>" ;
+  rdfs:comment "See also: <https://www.w3.org/TR/2013/REC-prov-o-20130430/>" ;
+  rdfs:label "Provenance Data Model (PROV-DM) and Ontology (PROV-O)" ;
+  skos:altLabel "PROV-DM" ;
+  skos:altLabel "PROV-O" ;
+  rdfs:subClassOf dpn:ProvenanceServiceInterface ;
+.
 dpns:SOS
   rdf:type owl:Class ;
   dc:source <https://www.ogc.org/standards/sos/> ;
@@ -322,8 +333,9 @@ dpns:MapServer
 
 dpns:PIDService
   rdf:type owl:Class ;
-  dc:source <https://web.archive.org/web/20210329015228/https://www.seegrid.csiro.au/wiki/Siss/PIDService> ;
+  dc:source <https://github.com/SISS/PID> ;
   rdfs:comment "Persistent Identifier Dispatcher Service (PIDSvc) is an open-source server that allows registration and deferencing of persistent identifier handles." ;
+  rdfs:comment "See also: <https://web.archive.org/web/20210329015228/https://www.seegrid.csiro.au/wiki/Siss/PIDService>" ;
   rdfs:label "Persistent Identifier Service" ;
   skos:altLabel "PID Service";
   rdfs:subClassOf dpn:Service ;
@@ -337,16 +349,21 @@ dpns:PIDService
 
 #..............................................................................
 # region PROMS
-dpns:PromsServiceInterface
+dpns:PROMS
   rdf:type owl:Class ;
   dc:source <https://github.com/CSIRO-enviro-informatics/proms> ;
-  rdfs:comment """The Provenance Management System (PROMS) service interface allows access to the PROMS implementation
-  for retrieval and storage of provenance instance reports and any semantic annotations""" ;
+  rdfs:comment """The Provenance Management System (PROMS) is open-access server software for
+  for retrieval and storage of provenance instance reports and any semantic annotations.""" ;
   rdfs:comment "See also: <https://www.mssanz.org.au/modsim2015/C4/wise.pdf>" ;
   rdfs:comment "See also: <https://doi.org/10.4225/08/5571046ED9FDB>" ;
-  rdfs:label "PROMS Service Interface" ;
+  rdfs:label "Provenance Management System (PROMS)" ;
   skos:altLabel "PROMS";
-  rdfs:subClassOf dpn:ProvenanceServiceInterface ;
+  rdfs:subClassOf dpn:Service ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpns:PROV ;
+    ] ;
 .
 # endregion
 
@@ -355,17 +372,18 @@ dpns:PromsServiceInterface
 
 dpns:SISSVocServiceInterface
   rdf:type owl:Class ;
-  dc:source <https://web.archive.org/web/20200418050243/https://www.seegrid.csiro.au/wiki/Siss/SISSvoc30API> ;
-  rdfs:comment "SISSVoc Service Interface definition" ;
+  rdfs:comment "REST API Exposed by an instance of the SISSVoc Server" ;
+  rdfs:comment "See also: <https://web.archive.org/web/20200418050243/https://www.seegrid.csiro.au/wiki/Siss/SISSvoc30API>" ;
   rdfs:label "SISSVoc Service Interface" ;
   skos:altLabel "SISSVoc interface";
   rdfs:subClassOf dpn:VocabularyServiceInterface ;
 .
 dpns:SISSVocService
   rdf:type owl:Class ;
-  dc:source <https://web.archive.org/web/20200315033011/https:/www.seegrid.csiro.au/wiki/Siss/VocabularyService> ;
+  dc:source <https://github.com/SISS/SISSVoc> ;
   rdfs:comment """Spatial Information Services Stack Vocabulary Service (SISSVoc) was an open-source web application
   intended to support hosting of controlled vocabularies..""" ;
+  rdfs:comment "See also: <https://web.archive.org/web/20200315033011/https:/www.seegrid.csiro.au/wiki/Siss/VocabularyService>" ;
   rdfs:label "SISSVoc Server" ;
   skos:altLabel "SISSVoc";
   rdfs:subClassOf dpn:Service ;
