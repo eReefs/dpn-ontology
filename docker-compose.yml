@@ -1,0 +1,19 @@
+
+services:
+  dpn-ontology:
+    build:
+      args:
+        LOCAL_VALIDATE_ARGS: "--require_prior --fix_missing_title --make_rdf --del_rdf --make_htm --del_htm --del_lode_subdir"
+      context: .
+      dockerfile: ./server/Dockerfile
+      target: "${BUILD_TARGET:-dev-server}"
+    environment:
+      FAVICON_URL: "https://www.ereefs.org.au/assets/images/logos/ereefs_logo_favicon.ico"
+    image: ereefs/dpn-ontology
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./server/:/opt/dpn-ontology/server/
+      - ./dpn.ttl:/opt/dpn-ontology/resources/.local/dpn.ttl
+      - ./dpn-dataset.ttl:/opt/dpn-ontology/resources/.local/dpn-dataset.ttl
+      - ./dpn-services.ttl:/opt/dpn-ontology/resources/.local/dpn-services.ttl
