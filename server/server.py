@@ -125,6 +125,8 @@ class HtmlCustomiser:
 
                 if FAVICON_URL:
                     _logger.debug('Injecting custom favicon link')
+                    for old_icon in soup.find_all('link', rel='icon'):
+                        old_icon.decompose()
                     favicon_tag = soup.new_tag('link')
                     favicon_tag['rel'] = 'icon'
                     favicon_tag['type'] = FAVICON_TYPE
@@ -271,7 +273,7 @@ class RemoteResource:
     def on_get(self, req: falcon.Request, resp: falcon.Response) -> None:
         """Handle requests for remote resource aliases."""
         raise falcon.HTTPMovedPermanently(location=self._remote_target)
-        
+
 
 app = falcon.App(middleware=[HtmlCustomiser()])
 app.req_options.strip_url_path_trailing_slash=True
