@@ -50,7 +50,7 @@ MEDIA_EXTENSIONS = {
     'application/xhtml+xml': '.htm'
 }
 ONTOLOGY_BASE = os.getenv('ONTOLOGY_BASE', os.path.join(os.getcwd()))
-with open(f"{ONTOLOGY_BASE}/local", 'r') as f:
+with open(f"{ONTOLOGY_BASE}/.local.version", 'r') as f:
     LOCAL_VERSION = f.read().strip()
 LATEST_VERSION = os.getenv('LATEST_VERSION') or LOCAL_VERSION
 CURRENT_VERSION = os.getenv('CURRENT_VERSION') or LOCAL_VERSION
@@ -168,7 +168,7 @@ class OntologyResource:
         version_path = safejoin(ONTOLOGY_BASE, version)
         if not os.path.isdir(version_path):
             _logger.info(f"Ontology version directory '{version_path}' for '{req.path}' not found")
-            raise falcon.HTTPRouteNotFound(description=f"Unknown ontology version")
+            raise falcon.HTTPRouteNotFound(description=f"Unknown ontology version '{version}'")
 
         # Identify the ontology resource the request is for, and the format it is wanted in.
         basename, extension = os.path.splitext(resource)
