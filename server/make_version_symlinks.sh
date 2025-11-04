@@ -2,9 +2,11 @@
 set -e
 
 ONTOLOGY_BASE="${ONTOLOGY_BASE:-}"
-if [ -d "${ONTOLOGY_BASE}" ]; then
-  cd "${ONTOLOGY_BASE}"
+if [ ! -d "${ONTOLOGY_BASE}" ]; then
+  >&2 echo "Error: ONTOLOGY_BASE directory '${ONTOLOGY_BASE}' does not exist"
+  exit 1
 fi
+cd "${ONTOLOGY_BASE}"
 
 for SUBDIR in $(find ./ -maxdepth 1 -type d -name 'v*' | sort); do
   FULL_VERSION=$(basename "${SUBDIR}")
