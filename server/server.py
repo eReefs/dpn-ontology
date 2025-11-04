@@ -156,23 +156,23 @@ class OntologyResource:
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, version: str, resource: str) -> None:
         """Handle requests for local ontology resource files, with content negotiation and aliases."""
-        _logger.info(f"Handling  request for ontology version '{version}' resource '{resource}'")
+        _logger.debug(f"Handling  request for ontology version '{version}' resource '{resource}'")
 
         # Validate that the `version` path parameter exactly matches an installed ontology version.
         if not version:
-            _logger.error(f"Missing ontology version in request path '{req.path}'")
+            _logger.info(f"Missing ontology version in request path '{req.path}'")
             raise falcon.HTTPRouteNotFound(description=f"Missing ontology version")
 
         version_path = safejoin(ONTOLOGY_BASE, version)
         if not os.path.isdir(version_path):
-            _logger.error(f"Ontology version directory '{version_path}' for '{req.path}' not found")
+            _logger.info(f"Ontology version directory '{version_path}' for '{req.path}' not found")
             raise falcon.HTTPRouteNotFound(description=f"Unknown ontology version")
 
         # Identify the ontology resource the request is for, and the format it is wanted in.
         basename, extension = os.path.splitext(resource)
         if not basename:
             # No ontology resource has actually been requested at all!
-            _logger.error(f"Missing ontology resource in request path '{req.path}'")
+            _logger.info(f"Missing ontology resource in request path '{req.path}'")
             raise falcon.HTTPRouteNotFound(description='Missing ontology resource')
 
         if extension:
@@ -187,7 +187,7 @@ class OntologyResource:
             target_type = req.client_prefers(MEDIA_EXTENSIONS.keys())
         if not target_type:
             # We don't know how to generate responses of any acceptable type
-            _logger.error(f"Unable to identify a supported an acceptable media type from extension='{extension}' or Accept='{req.accept}'")
+            _logger.info(f"Unable to identify a supported an acceptable media type from extension='{extension}' or Accept='{req.accept}'")
             raise falcon.HTTPNotAcceptable(description=f'Supported media types are: {MEDIA_EXTENSIONS.keys()}')
 
         # Does an ontology resource of this type exist as a local file already?
@@ -231,7 +231,7 @@ class OntologyResource:
                 resp.status = falcon.HTTP_200
             else:
                 # Conversion will not be possible, as we don't have anything to convert
-                _logger.error(f"Unable to identify an RDF conversion source for '{req.path}' and type '{target_type}'")
+                _logger.info(f"Unable to identify an RDF conversion source for '{req.path}' and type '{target_type}'")
                 raise falcon.HTTPNotFound(description=f"Unknown ontology resource '{req.path}'")
 
 
@@ -265,16 +265,13 @@ class RemoteResource:
     def __init__(self, remote_target: str | None = None):
         """Set per-handler-instance defaults for missing local resource path parts."""
         self._remote_target = remote_target
-        self._target_is_url = validators.url(self._remote_target)
+        if not validators.url(self._remote_target):
+            raise ValueError(f"'{self._remote_target}' is not a valid remote resource URL")
 
     def on_get(self, req: falcon.Request, resp: falcon.Response) -> None:
         """Handle requests for remote resource aliases."""
-        if self._target_is_url:
-            raise falcon.HTTPMovedPermanently(location=self._remote_target)
-        else:
-            _logger.error(f"Unable to redirect to configured remote target '{self._remote_target}': not a valid URL")
-            raise falcon.HTTPRouteNotFound()
-
+        raise falcon.HTTPMovedPermanently(location=self._remote_target)
+        
 
 app = falcon.App(middleware=[HtmlCustomiser()])
 app.req_options.strip_url_path_trailing_slash=True
