@@ -8,6 +8,7 @@ services:
       dockerfile: ./server/Dockerfile
       target: "${BUILD_TARGET:-dev-server}"
     environment:
+      CSS_URL: "https://www.ereefs.org.au/assets/css/lode.css"
       FAVICON_URL: "https://www.ereefs.org.au/assets/images/logos/ereefs_logo_favicon.ico"
     image: ereefs/dpn-ontology
     ports:
