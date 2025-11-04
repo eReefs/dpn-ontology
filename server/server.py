@@ -255,10 +255,10 @@ class OntologyResourceAlias:
             _logger.warning(f"Requested path '{req.path}' is not actually an alias - check your routing rules!")
             OntologyResource().on_get(req=req, resp=resp, version=use_version, resource=use_resource)
         elif not use_resource.startswith(self._required_prefix):
-            _logger.warning(f"Requested path '{req.path}' is not a valid ontology resource alias")
+            _logger.info(f"Requested path '{req.path}' is not a valid ontology resource alias")
             raise falcon.HTTPNotFound(description=f"Invalid ontology resource '{req.path}'")
         else:
-            _logger.warning(f"Requested path '{req.path}' is an alias for '{effective_path}'. Redirecting.")
+            _logger.info(f"Requested path '{req.path}' is an alias for '{effective_path}'. Redirecting.")
             raise falcon.HTTPSeeOther(location=f'{PATH_PREFIX}{effective_path}')
 
 class RemoteResource:
