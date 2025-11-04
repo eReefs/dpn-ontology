@@ -322,7 +322,7 @@ app.add_route('/{version}/{resource:path}', OntologyResource())
 
 # And lastly, a catch-all redirect-route for any *other* path,
 # assuming that any content in the path is EITHER only a real version OR only a resource.
-app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<version>v\d[\.\d]*)$')
+app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<version>v\d+(\.\d+)*)$')
 app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<resource>.*)$')
 
 
