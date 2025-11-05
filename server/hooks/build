@@ -34,10 +34,9 @@ fi
 ONTOLOGY_VERSION=$(cat dpn.ttl | grep owl:versionIRI | sed 's|.*\(v[[:digit:]]*[.[:digit:]]*\).*|\1|')
 VERSION_TAG=$(echo "${ONTOLOGY_VERSION}_v${SAFE_TIMESTAMP}-${SOURCE_COMMIT}")
 
-# Build our customised docker image, using the 
+# Build our customised docker image, using the
 # passed-in docker tag as the ontology version.
 docker build --pull \
-    --build-arg "ONTOLOGY_VERSION=${ONTOLOGY_VERSION}" \
     --label "org.opencontainers.image.authors=${BUILD_AUTHORS:-CSIRO eReefs Team}" \
     --label "org.opencontainers.image.branch=${SOURCE_BRANCH}" \
     --label "org.opencontainers.image.buildhost=${DOCKER_REPO}" \
