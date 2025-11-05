@@ -50,7 +50,7 @@ MEDIA_EXTENSIONS = {
     'application/xhtml+xml': '.htm'
 }
 ONTOLOGY_BASE = os.getenv('ONTOLOGY_BASE', os.path.join(os.getcwd()))
-with open(f"{ONTOLOGY_BASE}/local", 'r') as f:
+with open(f"{ONTOLOGY_BASE}/.local.version", 'r') as f:
     LOCAL_VERSION = f.read().strip()
 LATEST_VERSION = os.getenv('LATEST_VERSION') or LOCAL_VERSION
 CURRENT_VERSION = os.getenv('CURRENT_VERSION') or LOCAL_VERSION
@@ -125,6 +125,8 @@ class HtmlCustomiser:
 
                 if FAVICON_URL:
                     _logger.debug('Injecting custom favicon link')
+                    for old_icon in soup.find_all('link', rel='icon'):
+                        old_icon.decompose()
                     favicon_tag = soup.new_tag('link')
                     favicon_tag['rel'] = 'icon'
                     favicon_tag['type'] = FAVICON_TYPE
@@ -156,23 +158,23 @@ class OntologyResource:
 
     def on_get(self, req: falcon.Request, resp: falcon.Response, version: str, resource: str) -> None:
         """Handle requests for local ontology resource files, with content negotiation and aliases."""
-        _logger.info(f"Handling  request for ontology version '{version}' resource '{resource}'")
+        _logger.debug(f"Handling  request for ontology version '{version}' resource '{resource}'")
 
         # Validate that the `version` path parameter exactly matches an installed ontology version.
         if not version:
-            _logger.error(f"Missing ontology version in request path '{req.path}'")
+            _logger.info(f"Missing ontology version in request path '{req.path}'")
             raise falcon.HTTPRouteNotFound(description=f"Missing ontology version")
 
         version_path = safejoin(ONTOLOGY_BASE, version)
         if not os.path.isdir(version_path):
-            _logger.error(f"Ontology version directory '{version_path}' for '{req.path}' not found")
-            raise falcon.HTTPRouteNotFound(description=f"Unknown ontology version")
+            _logger.info(f"Ontology version directory '{version_path}' for '{req.path}' not found")
+            raise falcon.HTTPRouteNotFound(description=f"Unknown ontology version '{version}'")
 
         # Identify the ontology resource the request is for, and the format it is wanted in.
         basename, extension = os.path.splitext(resource)
         if not basename:
             # No ontology resource has actually been requested at all!
-            _logger.error(f"Missing ontology resource in request path '{req.path}'")
+            _logger.info(f"Missing ontology resource in request path '{req.path}'")
             raise falcon.HTTPRouteNotFound(description='Missing ontology resource')
 
         if extension:
@@ -187,7 +189,7 @@ class OntologyResource:
             target_type = req.client_prefers(MEDIA_EXTENSIONS.keys())
         if not target_type:
             # We don't know how to generate responses of any acceptable type
-            _logger.error(f"Unable to identify a supported an acceptable media type from extension='{extension}' or Accept='{req.accept}'")
+            _logger.info(f"Unable to identify a supported an acceptable media type from extension='{extension}' or Accept='{req.accept}'")
             raise falcon.HTTPNotAcceptable(description=f'Supported media types are: {MEDIA_EXTENSIONS.keys()}')
 
         # Does an ontology resource of this type exist as a local file already?
@@ -231,7 +233,7 @@ class OntologyResource:
                 resp.status = falcon.HTTP_200
             else:
                 # Conversion will not be possible, as we don't have anything to convert
-                _logger.error(f"Unable to identify an RDF conversion source for '{req.path}' and type '{target_type}'")
+                _logger.info(f"Unable to identify an RDF conversion source for '{req.path}' and type '{target_type}'")
                 raise falcon.HTTPNotFound(description=f"Unknown ontology resource '{req.path}'")
 
 
@@ -253,10 +255,10 @@ class OntologyResourceAlias:
             _logger.warning(f"Requested path '{req.path}' is not actually an alias - check your routing rules!")
             OntologyResource().on_get(req=req, resp=resp, version=use_version, resource=use_resource)
         elif not use_resource.startswith(self._required_prefix):
-            _logger.warning(f"Requested path '{req.path}' is not a valid ontology resource alias")
+            _logger.info(f"Requested path '{req.path}' is not a valid ontology resource alias")
             raise falcon.HTTPNotFound(description=f"Invalid ontology resource '{req.path}'")
         else:
-            _logger.warning(f"Requested path '{req.path}' is an alias for '{effective_path}'. Redirecting.")
+            _logger.info(f"Requested path '{req.path}' is an alias for '{effective_path}'. Redirecting.")
             raise falcon.HTTPSeeOther(location=f'{PATH_PREFIX}{effective_path}')
 
 class RemoteResource:
@@ -265,15 +267,12 @@ class RemoteResource:
     def __init__(self, remote_target: str | None = None):
         """Set per-handler-instance defaults for missing local resource path parts."""
         self._remote_target = remote_target
-        self._target_is_url = validators.url(self._remote_target)
+        if not validators.url(self._remote_target):
+            raise ValueError(f"'{self._remote_target}' is not a valid remote resource URL")
 
     def on_get(self, req: falcon.Request, resp: falcon.Response) -> None:
         """Handle requests for remote resource aliases."""
-        if self._target_is_url:
-            raise falcon.HTTPMovedPermanently(location=self._remote_target)
-        else:
-            _logger.error(f"Unable to redirect to configured remote target '{self._remote_target}': not a valid URL")
-            raise falcon.HTTPRouteNotFound()
+        raise falcon.HTTPMovedPermanently(location=self._remote_target)
 
 
 app = falcon.App(middleware=[HtmlCustomiser()])
@@ -323,7 +322,7 @@ app.add_route('/{version}/{resource:path}', OntologyResource())
 
 # And lastly, a catch-all redirect-route for any *other* path,
 # assuming that any content in the path is EITHER only a real version OR only a resource.
-app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<version>v\d[\.\d]*)$')
+app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<version>v\d+(\.\d+)*)$')
 app.add_sink(dpn_default_alias.on_get, prefix=r'/(?P<resource>.*)$')
 
 

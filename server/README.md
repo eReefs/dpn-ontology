@@ -134,7 +134,7 @@ The DPN Ontology Server container can be configured via the following environmen
   - This *also* is the version that will be served for the unversioned DPN Ontology IRI aliases (<http://purl.prg/dpn> -> `https://dpn.ereefs.info/ontology/${CURRENT_VERSION}/dpn`)
   - Defaults to the version from the `dpn.ttl` file that was local at build-time
   - You can also be set to any other version which has been compiled or mounted into the container image.
-- `LATEST_VERSION` => The version of the ontology which should be served up by default, or if the `latest` version-alias is requested.
+- `LATEST_VERSION` => The version of the ontology which should be served if the `latest` version-alias is requested.
   - Defaults to the version from the `dpn.ttl` file that was local at build-time
   - Can also be set to any other version which has been compiled or mounted into the container image.
 - `CSS_URL` => Absolute URL to an external CSS stylesheet that should be referenced by all HTML documents.

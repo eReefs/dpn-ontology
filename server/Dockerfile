@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Install some historically-significant versions of the precompiled ontology
 # from artefacts that have been added to their github release
-ARG PRIOR_VERSIONS="v0.8 v0.7.2 v0.7.1 v0.6.1.24 v0.5.0.17 v0.4.0.19 v0.3 v0.2 v0.1"
+ARG PRIOR_VERSIONS="v0.7.2 v0.7.1 v0.6.1.24 v0.5.0.17 v0.4.0.19 v0.3 v0.2 v0.1"
 RUN --mount=target=/downloads,type=cache,sharing=locked \
     DOWNLOADS_DIR="/downloads"; \
     mkdir -p "${ONTOLOGY_BASE}"; \
@@ -52,13 +52,13 @@ RUN python validate.py ${PRIOR_VALIDATE_ARGS}
 # Use a text file to pass this information to the runtime server
 # (hack to workaround not being able to calculate ENV vars values at build time)
 # Then validate the local version. Be strict so that issues have to get fixed *before* release, not after...
-COPY ./*.ttl "${ONTOLOGY_BASE}/local/"
+COPY ./*.ttl "${ONTOLOGY_BASE}/.local/"
 ARG LOCAL_VALIDATE_ARGS="--require_prior --make_rdf --make_htm"
-RUN LOCAL_VERSION=$(cat "${ONTOLOGY_BASE}/local/dpn.ttl" | grep owl:versionIRI | sed 's|.*\(v[[:digit:]]*[.[:digit:]]*\).*|\1|') \
+RUN LOCAL_VERSION=$(cat "${ONTOLOGY_BASE}/.local/dpn.ttl" | grep owl:versionIRI | sed 's|.*\(v[[:digit:]]*[.[:digit:]]*\).*|\1|') \
     && if [ -z "${LOCAL_VERSION}" ]; then echo "No version IRI found in local dpn.ttl"; exit 1; fi \
-    && if [ -d "${ONTOLOGY_VERSION}/${LOCAL_VERSION}" ]; then echo "Version from local dpn.ttl '${LOCAL_VERSION}' clashes with a prior version"; exit 1; fi \
-    && mv "${ONTOLOGY_BASE}/local" "${ONTOLOGY_BASE}/${LOCAL_VERSION}" \
-    && echo "${LOCAL_VERSION}" > "${ONTOLOGY_BASE}/local" \
+    && if [ -d "${ONTOLOGY_BASE}/${LOCAL_VERSION}" ]; then echo "Version from local dpn.ttl '${LOCAL_VERSION}' clashes with a prior version"; exit 1; fi \
+    && ln -sf "${ONTOLOGY_BASE}/.local" "${ONTOLOGY_BASE}/${LOCAL_VERSION}" \
+    && echo "${LOCAL_VERSION}" > "${ONTOLOGY_BASE}/.local.version" \
     && python validate.py --target "${LOCAL_VERSION}" ${LOCAL_VALIDATE_ARGS}
 
 # Set up the Falcon-based DPN Ontology server to run by default/

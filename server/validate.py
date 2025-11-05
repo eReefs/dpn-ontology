@@ -27,9 +27,9 @@ def installation_directory(version: str) -> str | None:
     return expected if os.path.isdir(expected) else None
 
 
-def identify_version(value: str, fix_semver: bool = False) -> str:
+def identify_version(value: str, fix_semver: bool = False) -> str | None:
     """Extract and return an ontology version from a string that should contain one."""
-    match = re.search(r'v\d[\.\d]*', value)
+    match = re.search(r'v\d+(\.\d+)*', value)
     version = match.group(0) if match else None
     if version and fix_semver:
         version_parts = version.split('.')
@@ -37,7 +37,7 @@ def identify_version(value: str, fix_semver: bool = False) -> str:
             # Some early releases had 4-part semver tags where the last part was a build-id.
             # Those were NOT used in the ontology IRIs, so don't consider them part of the version.
             version_parts = version_parts[:-1]
-        if len(version_parts) > 2 and version_parts[-1] == 0:
+        if len(version_parts) > 2 and version_parts[-1] == "0":
             # Releases *always* included a patch version in the tag, even if there hadn't been any patches.
             # Those were ALSO not used in the IRI: omit them.
             version_parts = version_parts[:-1]

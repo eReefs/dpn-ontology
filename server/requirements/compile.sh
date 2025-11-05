@@ -3,20 +3,20 @@
 # This script will update requirements/requirements.txt.
 # Usage:
 #
-#     docker compose run --rm recom-api requirements/compile.sh
+#     docker compose run --rm --entrypoint /bin/bash dpn-ontology requirements/compile.sh
 #
 # Any arguments are passed on to `pip-compile`.
 # You can upgrade a specific package by either
 # updating its version in `requirements.in`,
 # or using the `--upgrade-package` flag to `pip-compile`:
 #
-#     docker compose run --rm recom-api requirements/compile.sh \
+#     docker compose run --rm --entrypoint /bin/bash dpn-ontology requirements/compile.sh \
 #         --upgrade-package some-package==1.2.3
 #
 # You can update all packages including dependencies
 # using the `--upgrade` flag:
 #
-#     docker compose run --rm recom-api requirements/compile.sh \
+#     docker compose run --rm --entrypoint /bin/bash dpn-ontology requirements/compile.sh \
 #         --upgrade
 #
 # See `pip-compile` documentation for detailed instructions:
