@@ -3,7 +3,7 @@ services:
   dpn-ontology:
     build:
       args:
-        LOCAL_VALIDATE_ARGS: "--require_prior --fix_missing_title --make_rdf --del_rdf --make_htm --del_htm --del_lode_subdir"
+        LOCAL_VALIDATE_ARGS: "--require_prior --make_rdf --del_rdf --make_htm --del_htm"
       context: .
       dockerfile: ./server/Dockerfile
       target: "${BUILD_TARGET:-dev-server}"

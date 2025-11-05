@@ -25,11 +25,11 @@ The relevant permalinks (Internationalized Resource Identifiers, or IRIs) for th
 
 The hosted version of these resources supports content negotiation via the [HTTP Accept Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept), and you may request the definitions in any of several formats:
 
-- Human-readable HTML => `application/xhtml+xml` |
+- Human-readable HTML => `application/xhtml+xml`
 - [Turtle](https://en.wikipedia.org/wiki/Turtle_(syntax)) => `text/turtle`
 - [RDF/XML](https://en.wikipedia.org/wiki/RDF/XML) => `application/rdf+xml`
 - [JSON-LD](https://en.wikipedia.org/wiki/JSON-LD) => `application/ld+json`
-- [N-triples](https://en.wikipedia.org/wiki/N-Triples) -> `application/n-triples`
+- [N-triples](https://en.wikipedia.org/wiki/N-Triples) => `application/n-triples`
 
 The Data Provider Node Ontology Definitions in this repository and the hosted versions of those definitions accessed via the permalinks listed above are published under the [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) license (`CC-BY-4.0`).  Please see the [eReefs Attribution Requirements](https://www.ereefs.org.au/legal/copyright-and-licence#attribution-requirements) for details of our preferred attribution.
 
@@ -40,6 +40,3 @@ The [server](./server) subdirectory of this repository contains definitions for 
 Please refer to the [Server README](./server/README.md) for more information about how it works.
 
 The server software is published under a `BSD 3-Clause` [software license](./server/LICENSE).
-
-
-

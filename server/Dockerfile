@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Install some historically-significant versions of the precompiled ontology
 # from artefacts that have been added to their github release
-ARG PRIOR_VERSIONS="v0.7.2 v0.7.1 v0.6.1.24 v0.5.0.17 v0.4.0.19 v0.3 v0.2 v0.1"
+ARG PRIOR_VERSIONS="v0.8 v0.7.2 v0.7.1 v0.6.1.24 v0.5.0.17 v0.4.0.19 v0.3 v0.2 v0.1"
 RUN --mount=target=/downloads,type=cache,sharing=locked \
     DOWNLOADS_DIR="/downloads"; \
     mkdir -p "${ONTOLOGY_BASE}"; \
