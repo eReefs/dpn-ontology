@@ -84,28 +84,12 @@ dpn:Node
   rdfs:comment "A Data Provider Node (DPN) enables discovery of, description of and access to a group of Datasets that are owned by the same Organisation." ;
   rdfs:comment "Each DPN is considered to expose one or more Web Services which implement the Service Interfaces by which data is discovered and accessed.  Each Node is considered to provide the complete collection of Service Interfaces those Web Services implement." ;
   rdfs:label "Data Provider Node" ;
-  rdfs:subClassOf owl:Thing , dcat:PublishedThing;
   # A DPN may be hosted, managed, owned and published by one or more organisations
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:hostedBy ;
       owl:someValuesFrom dpn:Organisation ;
       owl:inverseOf dpn:hostsNode ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manager ;
-      owl:someValuesFrom dpn:Organisation ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:owner ;
-      owl:someValuesFrom dpn:Organisation ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dc:publisher ;
-      owl:someValuesFrom dpn:Organisation ;
     ] ;
   owl:disjointWith dpn:Catalog ;
   owl:disjointWith dpn:Dataset ;
@@ -127,7 +111,6 @@ dpn:Organisation
   rdfs:comment "Organisations may also manage Datasets and Catalogs, with a degree of administrative responsibilty for publication of data and metadata." ;
   rdfs:label "Organisation" ;
   rdfs:subClassOf org:Organization ;
-  # Organisations may be hierarchical
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty org:hasSubOrganization ;
@@ -137,33 +120,6 @@ dpn:Organisation
       rdf:type owl:Restriction ;
       owl:onProperty org:subOrganizationOf ;
       owl:someValuesFrom dpn:Organisation ;
-    ] ;
-  # Organisations may be bidirectionally associated with
-  # the datasets that they own
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:owns ;
-      owl:someValuesFrom dpn:Dataset ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manages ;
-      owl:someValuesFrom dpn:Dataset ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manages ;
-      owl:someValuesFrom dpn:Catalog ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manages ;
-      owl:someValuesFrom dpn:Node ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manages ;
-      owl:someValuesFrom dpn:Service ;
     ] ;
   owl:disjointWith dpn:Catalog ;
   owl:disjointWith dpn:Dataset ;
@@ -181,9 +137,8 @@ dpn:Dataset
   rdfs:comment "A Dataset is machine-readable information that can be accessed via one or more Distributions." ;
   rdfs:comment "Datasets and their Distributions can be discovered from Catalogs, and are considered hosted by all the Catalog, Web Service and Node instances involved making them discoverable." ;
   rdfs:comment "Datasets may be nested, and a Dataset is also considered hosted by its parent Dataset." ;
-  rdfs:comment "The dpn:owner of a Dataset is the IP-owner" ;
+  rdfs:comment "The owner of a Dataset is the IP-owner, while the manager is the current custodian." ;
   rdfs:label "Dataset" ;
-  rdfs:subClassOf owl:Thing ;
   rdfs:subClassOf dcat:Dataset ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
@@ -195,41 +150,6 @@ dpn:Dataset
       owl:onProperty dcat:distribution ;
       owl:someValuesFrom dpn:Distribution ;
     ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:hostedBy ;
-      owl:someValuesFrom dpn:Catalog ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:hostedBy ;
-      owl:someValuesFrom dpn:Dataset ;
-    ] ;
-  rdfs:subClassOf [
-    rdf:type owl:Restriction ;
-    owl:onProperty dpn:hostedBy ;
-    owl:someValuesFrom dpn:Node ;
-  ] ;
-  rdfs:subClassOf [
-    rdf:type owl:Restriction ;
-    owl:onProperty dpn:hostedBy ;
-    owl:someValuesFrom dpn:Service ;
-  ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:manager ;
-      owl:someValuesFrom dpn:Organisation ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:owner ;
-      owl:someValuesFrom dpn:Organisation ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dc:publisher ;
-      owl:someValuesFrom dpn:Organisation ;
-    ] ;
   owl:disjointWith dpn:Catalog ;
   owl:disjointWith dpn:Distribution ;
   owl:disjointWith dpn:Node ;
@@ -240,13 +160,13 @@ dpn:Dataset
 
 #..............................................................................
 # region dpn:Distribution
+
 dpn:Distribution
   rdf:type owl:Class ;
-  rdfs:comment "A Distribution makes a Dataset available in a specific form via an accessURL which implements a well-known dpn:DataServiceInterface." ;
+  rdfs:comment "A Distribution makes the content or metadata for a single Dataset available via a single accessURL." ;
   rdfs:comment "Distributions are considered to host the Datasets that they enable access to." ;
-  rdfs:comment "Distributions are considered to by hosted by the Web Services that the accessURLs resolve to." ;
+  rdfs:comment "Distributions are considered to be hosted by the Web Services that the accessURLs resolve to." ;
   rdfs:label "Distribution" ;
-  rdfs:subClassOf owl:Thing ;
   rdfs:subClassOf dcat:Distribution ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
@@ -254,23 +174,34 @@ dpn:Distribution
       owl:cardinality 1 ;
     ] ;
   rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:implements;
-      owl:someValuesFrom dpn:DataServiceInterface ;
-    ] ;
+      rdf:type owl:Class ;
+      owl:unionOf (
+        [
+          rdf:type owl:Restriction ;
+          owl:onProperty dpn:implements ;
+          owl:someValuesFrom dpn:DataServiceInterface ;
+        ]
+        [
+          rdf:type owl:Restriction ;
+          owl:onProperty dpn:implements ;
+          owl:someValuesFrom dpn:MetadataServiceInterface ;
+        ]
+        [
+          rdf:type owl:Restriction ;
+          owl:onProperty dpn:implements ;
+          owl:someValuesFrom dpn:InfoModelServiceInterface ;
+        ]
+      ) ;
+  ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
-      owl:onProperty dpn:implements;
+      owl:onProperty dpn:implements ;
       owl:cardinality 1 ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:hostedBy ;
-      owl:allValuesFrom dpn:Service ;
     ] ;
   owl:disjointWith dpn:Dataset ;
   owl:disjointWith dpn:Node ;
   owl:disjointWith dpn:Organisation ;
+  owl:disjointWith dpn:Service ;
 .
 #endregion
 
@@ -279,11 +210,11 @@ dpn:Distribution
 dpn:Catalog
   rdf:type owl:Class ;
   rdfs:comment "A Catalog supports discovery of Datasets via an accessURL which implements a well-known dpn:CatalogServiceInterface." ;
-  rdfs:comment "A Catalog is affiliated with a Web Service which provides the accessURL, and is considered hosted by that Service." ;
+  rdfs:comment "Catalogs may also host sub-catalogs, which may be discoverable via the same accessUrl or else pre-configured." ;
   rdfs:comment "Catalogs are considered to host the datasets which they discover." ;
   rdfs:label "Catalog" ;
-  rdfs:subClassOf owl:Thing ;
   rdfs:subClassOf dcat:Catalog ;
+  rdfs:subClassOf dpn:Service ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dcat:accessURL ;
@@ -291,13 +222,8 @@ dpn:Catalog
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
-      owl:minCardinality 1 ;
       owl:onProperty dpn:implements ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:implements ;
-      owl:someValuesFrom dpn:CatalogServiceInterface ;
+      owl:allValuesFrom dpn:CatalogServiceInterface ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
@@ -306,26 +232,24 @@ dpn:Catalog
       owl:inverseOf dpn:catalog ;
     ] ;
   owl:disjointWith dpn:Dataset ;
+  owl:disjointWith dpn:Distribution ;
+  owl:disjointWith dpn:Service ;
   owl:disjointWith dpn:Node ;
   owl:disjointWith dpn:Organisation ;
 .
 # endregion
-
-
-
-
 #..............................................................................
 # region dpn:Service
+
 dpn:Service
   rdf:type owl:Class ;
-  rdfs:comment "A Web Service is a deployed web application that enables access to some combination of data, metadata and related information by both humans and other web applications" ;
-  rdfs:comment "All Web Services implements one or more well-known Service Interfaces, which may support the accessURLs of Catalogs (for Dataset discovery) and/or Distributions (for Dataset querying)." ;
-  rdfs:comment "A Web Service implementation may permit discovery of the Catalogs it supports in that way, and is deemed to host any Dataset discovered via those Catalogs if the Dataset's Distribution is also supported by the Service." ;
-  rdfs:comment "A Web Service which is dedicated to only data for a single Data Provider Node may itself *be* a Catalog." ;
-  rdfs:comment "Each Web Service is managed by an Organisation who are responsible for the IT infrastructure supporting that service." ;
+  rdfs:comment """A Web Service represents a web application which enables implements one or more well-known Service Interfaces
+  and enables access to some combination of data, metadata and related information by both humans and other web applications.""" ;
+  rdfs:comment """Each Web Service is associated with one or more Data Provider Nodes, and is managed by an Organisation who
+  are responsible for the IT infrastructure supporting that service.""" ;
+  rdfs:comment """A web service may host one or more datasets and also other more specialised web-services which support
+  discovery or distribution of those datasets.""" ;
   rdfs:label "Web Service" ;
-  rdfs:subClassOf owl:Thing ;
-  rdfs:subClassOf dpn:Catalog ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:implements ;
@@ -334,20 +258,25 @@ dpn:Service
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:hosts ;
-      owl:allValuesFrom dpn:Dataset ;
+      owl:someValuesFrom dpn:Catalog ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpn:hosts ;
-      owl:allValuesFrom dpn:Distribution ;
+      owl:someValuesFrom dpn:Dataset ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:hosts ;
+      owl:someValuesFrom dpn:Distribution ;
     ] ;
   owl:disjointWith dpn:Dataset ;
   owl:disjointWith dpn:Node ;
   owl:disjointWith dpn:Organisation ;
   skos:example <http://ereefs.info/id/service/aims-ereefs-thredds> ;
 .
-# endregion
 
+# endregion
 #..............................................................................
 # region dpn:ServiceInterface
 # (and related sub-classes)
@@ -355,57 +284,57 @@ dpn:ServiceInterface
   rdf:type owl:Class ;
   rdfs:comment "A Service Interface is an abstraction for a well understood, documented interface that may be implemented by one or more applications to enable access to data, metadata or related information." ;
   rdfs:comment "A service interface will ideally be compliant with some managed standard, but may also be custom and application specific." ;
+  rdfs:comment """The `dpn:ServiceInterface` subclasses defined by this ontology categories of tasks that an interface may be used to perform.
+  These are analagous to abstract base classes in software; each `dpn:WebService` which *implements* a defined `dpn:ServiceInterface`
+  must enable a client to perform that task.""" ;
   rdfs:label "Service Interface" ;
-  rdfs:subClassOf owl:Thing ;
+.
+dc:conformsTo
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:domain dpn:ServiceInterface ;
 .
 dpn:CatalogServiceInterface
   rdf:type owl:Class ;
-  rdfs:comment "A Catalog Service Interface is common abstraction for any Service Interface which can be used to discover Datasets." ;
+  rdfs:comment "Catalog service interfaces can be used to discover datasets and sub-catalogs." ;
   rdfs:label "Catalog Service Interface" ;
   rdfs:subClassOf dpn:ServiceInterface ;
 .
 dpn:DataServiceInterface
   rdf:type owl:Class ;
-  rdfs:comment "A Data Service Interface is a common abstraction for any Service Interface which can be used to query or download Datasets." ;
+  rdfs:comment "Data services interfaces can be used to query or download the contents of datasets." ;
   rdfs:label "Data Service Interface" ;
+  rdfs:subClassOf dpn:ServiceInterface ;
+.
+dpn:MetadataServiceInterface
+  rdf:type owl:Class ;
+  rdfs:comment "Metadata service interfaces can be used to retrieve metadata about Datasets." ;
+  rdfs:label "Metadata Service Interface" ;
+  rdfs:subClassOf dpn:ServiceInterface ;
+.
+dpn:ProvenanceServiceInterface
+  rdf:type owl:Class ;
+  rdfs:comment "Provenance service interfaces can be used to retrieve provenance metadata for datasets" ;
+  rdfs:label "Provenance Service Interface" ;
+  rdfs:subClassOf dpn:MetadataServiceInterface ;
+.
+dpn:InfoModelServiceInterface
+  rdf:type owl:Class ;
+  rdfs:comment "Information model services can be used to retrieve structured information, including schemas." ;
+  rdfs:label "Information Model Service Interface" ;
   rdfs:subClassOf dpn:ServiceInterface ;
 .
 dpn:FeatureTypeCatalogue
   rdf:type owl:Class ;
-  rdfs:comment "A Feature Type Catalogue (FTC) gives an informative overview of the spatial object types (features) and data types. Generally an FTC implements a registry of feature types which allow features to be described." ;
+  rdfs:comment "A Feature Type Catalogue (FTC) gives an informative overview spatial object types (features) and data types. Generally an FTC implements a registry of feature types which allow features to be described." ;
   rdfs:label "Feature Type Catalogue" ;
   rdfs:subClassOf dpn:InfoModelServiceInterface ;
 .
 dpn:IdentifierServiceInterface
   rdf:type owl:Class ;
-  rdfs:comment "Abstract interface for Persistent Identifier Services which allow registry and deferencing identifier handles." ;
+  rdfs:comment "Identifier services allow registration and deferencing of persistant identifier handles." ;
   rdfs:label "Persistent Identifier Service" ;
   rdfs:seeAlso <https://www.seegrid.csiro.au/wiki/Siss/PIDService> ;
   rdfs:subClassOf dpn:ServiceInterface ;
-.
-dpn:InfoModelServiceInterface
-  rdf:type owl:Class ;
-  rdfs:comment "An abstract interface for information model services" ;
-  rdfs:label "Information Model Service Interface" ;
-  rdfs:subClassOf dpn:ServiceInterface ;
-.
-dpn:MetadataServiceInterface
-  rdf:type owl:Class ;
-  rdfs:comment "A Metadata Service Interface is a common abstraction for any Service Interface which can be used to retrieve metadata *about* Datasets." ;
-  rdfs:label "Metadata Service Interface" ;
-  rdfs:subClassOf dpn:ServiceInterface ;
-.
-dpn:ObservationServiceInterface
-  rdf:type owl:Class ;
-  rdfs:comment "An Observation Service Interface can be used to discover observations associated with a dpnd:ObservationGroup" ;
-  rdfs:label "Observation Service Interface" ;
-  rdfs:subClassOf dpn:DataServiceInterface ;
-.
-dpn:ProvenanceServiceInterface
-  rdf:type owl:Class ;
-  rdfs:comment "A Provenance Service Interface can be used to retrieve provenance information for Datasets" ;
-  rdfs:label "Provenance Service Interface" ;
-  rdfs:subClassOf dpn:MetadataServiceInterface ;
 .
 dpn:VocabularyServiceInterface
   rdf:type owl:Class ;
@@ -423,18 +352,30 @@ dpn:LinkedDataApiOperation
   rdfs:label "Linked Data API Operation" ;
   rdfs:subClassOf wl:Operation ;
   rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty wl:hasOutputMessage ;
-      owl:someValuesFrom [
-          rdf:type owl:Class ;
-          owl:oneOf (
-              dpn:Html
-              dpn:JSON
-              dpn:RDF
-              dpn:XML
-            ) ;
-        ] ;
-    ] ;
+    a owl:Class ;
+    owl:unionOf (
+      [
+        rdf:type owl:Restriction ;
+        owl:onProperty wl:hasOutputMessage ;
+        owl:someValuesFrom dpn:Html ;
+      ]
+      [
+        rdf:type owl:Restriction ;
+        owl:onProperty wl:hasOutputMessage ;
+        owl:someValuesFrom dpn:JSON ;
+      ]
+      [
+        rdf:type owl:Restriction ;
+        owl:onProperty wl:hasOutputMessage ;
+        owl:someValuesFrom dpn:RDF ;
+      ]
+      [
+        rdf:type owl:Restriction ;
+        owl:onProperty wl:hasOutputMessage ;
+        owl:someValuesFrom dpn:XML ;
+      ]
+    ) ;
+  ] ;
 .
 dpn:Html
   rdf:type wl:Message ;
@@ -472,8 +413,8 @@ dpn:datasetPattern
 .
 dpn:catalog
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "A Catalog which has an accessURL supported by a Web Service. May be discovered rather than configured." ;
-  rdfs:domain dpn:Service ;
+  rdfs:comment "A sub-catalog associated with the parent catalog-service. May be discovered rather than configured." ;
+  rdfs:domain dpn:Catalog ;
   rdfs:label "catalog" ;
   rdfs:range dpn:Catalog ;
   rdfs:subPropertyOf dpn:hosts ;
@@ -481,10 +422,10 @@ dpn:catalog
 .
 dpn:catalogPattern
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "Regular expression used to filter catalogs associated with a Web Service to only those of interest." ;
+  rdfs:comment "Regular expression used to filter discoverable sub-catalogs to only those of interest." ;
   rdfs:comment "Catalog discovery searches should only target catalogs where the accessURL of the Catalog matches the regular expression." ;
   rdfs:comment "Omit this property to always discover datasets from all known catalogs." ;
-  rdfs:domain dpn:Service ;
+  rdfs:domain dpn:Catalog ;
   rdfs:label "catalog pattern" ;
 .
 dpn:contactPoint
@@ -508,7 +449,7 @@ dpn:endpoint
 .
 dpn:exposesService
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "This property allows a Data Provider Node to identify the service(s) that are combined to make up the Node. This is the inverse of dpn:node" ;
+  rdfs:comment "This property allows a Data Provider Node to identify the service(s) that are combined to make up the Node." ;
   rdfs:domain dpn:Node ;
   rdfs:label "exposes service" ;
   rdfs:range dpn:Service ;
@@ -518,43 +459,63 @@ dpn:exposesService
 .
 dpn:hasImplementation
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "This property captures the association between a service interface specification and the entities that implement it" ;
+  rdfs:comment "This property captures the association between a service interface specification and the entities that implement it." ;
   rdfs:domain dpn:ServiceInterface ;
   rdfs:label "has implementation" ;
+  sdo:rangeIncludes dpn:Distribution , dpn:Service ;
   rdfs:range [
-      a owl:Class ;
-      owl:unionOf ( dpn:Distribution dpn:Catalog dpn:Service )
-    ] ;
+    a owl:Class ;
+    owl:unionOf ( dpn:Distribution dpn:Service ) ;
+  ] ;
   owl:inverseOf dpn:implements ;
 .
 dpn:hostedBy
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "Property to express the entity which controls access to a given resource. This is the inverse of dpn:hosts" ;
-  rdfs:domain dpn:Node , dpn:Dataset , dpn:Distribution , dpn:Catalog ;
+  rdfs:comment "Property to express the entity which controls access to a given resource." ;
+  sdo:domainIncludes dpn:Node , dpn:Dataset , dpn:Service ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
   rdfs:label "hosted by" ;
+  sdo:rangeIncludes dpn:Organisation, dpn:Node, dpn:Dataset, dpn:Service ;
   rdfs:range [
-      a owl:Class ;
-      owl:unionOf (dpn:Node dpn:Organisation dpn:Dataset dpn:Catalog dpn:Service )
-    ] ;
-  owl:inverseOf dpn:hosts ;
+    a owl:Class ;
+    owl:unionOf ( dpn:Organisation dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
+  owl:inverseOf dpn:hosts, dpn:hostsDataset, dpn:hostsNode, dpn:catalog ;
 .
 dpn:hosts
   rdf:type owl:ObjectProperty ;
   rdfs:comment "Property to express a sub-resource that an entity enables access to." ;
-  rdfs:domain rdfs:Resource ;
+  sdo:domainIncludes dpn:Organisation, dpn:Node, dpn:Dataset, dpn:Service ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Organisation dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
   rdfs:label "hosts" ;
-  rdfs:range rdfs:Resource ;
+  sdo:rangeIncludes dpn:Node , dpn:Dataset , dpn:Service ;
+  rdfs:range [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
   owl:inverseOf dpn:hostedBy ;
 .
 dpn:hostsDataset
   rdf:type owl:ObjectProperty ;
   rdfs:comment "Property to identify a dataset that an entity enables access to." ;
-  rdfs:domain dpn:Catalog , dpn:Distribution ;
+  sdo:domainIncludes dpn:Catalog, dpn:Distribution ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Catalog dpn:Distribution ) ;
+  ] ;
   rdfs:label "hosts dataset" ;
   rdfs:range dpn:Dataset ;
   rdfs:subPropertyOf dpn:hosts ;
-  owl:equivalentProperty dcat:dataset , dcat:distribution;
+  owl:equivalentProperty dcat:dataset ;
+  owl:equivalentProperty dcat:servesDataset ;
   owl:inverseOf dpn:hostedBy ;
+  owl:inverseOf dcat:distribution ;
 .
 dpn:hostsNode
   rdf:type owl:ObjectProperty ;
@@ -564,39 +525,47 @@ dpn:hostsNode
   rdfs:range dpn:Node ;
   rdfs:subPropertyOf dpn:hosts ;
   owl:inverseOf dpn:hostedBy ;
-  owl:inverseOf dc:publisher ;
 .
 dpn:implements
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "This property captures the association between an entity and the its interface specification(s). This is the inverse to dpn:hasImplementation." ;
-  rdfs:domain dpn:Catalog , dpn:Distribution , dpn:Service ;
+  rdfs:comment "This property captures the association between an entity and the its interface specification(s)." ;
+  sdo:domainIncludes dpn:Distribution , dpn:Service ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Distribution dpn:Service ) ;
+  ];
   rdfs:label "implements" ;
   rdfs:range dpn:ServiceInterface ;
   owl:inverseOf dpn:hasImplementation ;
 .
 dpn:manager
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "Property to describe the organisation responsible for managing a resource. This is the inverse to dpn:manages" ;
-  rdfs:domain dpn:Node , dpn:Dataset , dpn:Catalog , dpn:Service ;
+  rdfs:comment "Property to describe the organisation responsible for managing a resource." ;
+  rdfs:comment "For Dataset and Catalog entities (both subclasses of dcat:PublishedThing), the manager organisation can be assumed to be the publisher." ;
+  sdo:domainIncludes dpn:Node , dpn:Dataset , dpn:Service ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
   rdfs:label "manager" ;
   rdfs:range dpn:Organisation ;
-  owl:equivalentProperty dcat:publisher ;
   owl:inverseOf dpn:manages ;
 .
 dpn:manages
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "An organisation can manage other entities in a context of a data provider node and its datasets. This is the inverse of dpn:manager" ;
+  rdfs:comment "An organisation can manage other entities in a context of a data provider node and its datasets." ;
   rdfs:domain dpn:Organisation ;
   rdfs:label "manages" ;
+  sdo:rangeIncludes dpn:Node, dpn:Dataset, dpn:Service ;
   rdfs:range [
-      a owl:Class ;
-      owl:unionOf ( rdfs:Resource dpn:Node dpn:Dataset dpn:Catalog dpn:Service )
-    ] ;
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset dpn:Service ) ;
+  ] ;
   owl:inverseOf dpn:manager ;
 .
 dpn:node
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "Associates a service with the Data Provider Node that exposes it. This is the inverse of dpn:exposesService." ;
+  rdfs:comment "Associates a service with the Data Provider Node that exposes it." ;
   rdfs:domain dpn:Service ;
   rdfs:label "node" ;
   rdfs:range dpn:Node ;
@@ -621,18 +590,26 @@ dpn:observationIncludePattern
 .
 dpn:owner
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "Property to express the owner of a resource. This is the inverse to dpn:owns" ;
-  rdfs:domain rdfs:Resource , dpn:Node , dpn:Dataset;
+  rdfs:comment "Property to express the owner of a resource." ;
+  sdo:domainIncludes dpn:Node, dpn:Dataset ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset ) ;
+  ] ;
   rdfs:label "owner" ;
   rdfs:range dpn:Organisation ;
   owl:inverseOf dpn:owns ;
 .
 dpn:owns
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "An organisation can own other entities in the context of a data provider node. This is the inverse of dpn:owner" ;
+  rdfs:comment "An organisation can own other entities in the context of a data provider node." ;
   rdfs:domain dpn:Organisation ;
   rdfs:label "owns" ;
-  rdfs:range rdfs:Resource ;
+  sdo:rangeIncludes dpn:Node, dpn:Dataset ;
+  rdfs:range [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset ) ;
+  ] ;
   owl:inverseOf dpn:owner ;
 .
 dpn:providesServiceInterface
@@ -645,8 +622,13 @@ dpn:providesServiceInterface
 dpn:related
   rdf:type owl:ObjectProperty ;
   rdfs:comment "Property to express relationship between resources in a data provider node context" ;
-  rdfs:domain dpn:Node , dpn:Dataset ;
+  sdo:domainIncludes dpn:Node, dpn:Dataset ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpn:Node dpn:Dataset ) ;
+  ] ;
   rdfs:label "related" ;
   rdfs:range rdfs:Resource ;
+  owl:equivalentProperty dc:relation ;
 .
 # endregion
