@@ -10,6 +10,14 @@ from rdflib import Graph
 import validators
 from wsgiref.simple_server import make_server
 
+
+# Hack! Make the OntPub rendering understand a few more OWL properties.
+from pylode.rdf_elements import PROP_PROPS, PROPS
+from rdflib.namespace import OWL
+_EXTRA_PROPS = [OWL.equivalentProperty, OWL.inverseOf]
+PROP_PROPS.extend(_EXTRA_PROPS)
+PROPS.update(_EXTRA_PROPS)
+
 # Remove any handlers that might have been added to the root logger
 # by some library someplace...
 for handler in logging.root.handlers[:]:
