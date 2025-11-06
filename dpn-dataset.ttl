@@ -1,5 +1,5 @@
 @prefix cc: <http://creativecommons.org/ns#> .
-@prefix dc: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix dpn: <http://purl.org/dpn#> .
 @prefix dpnd: <http://purl.org/dpn/dataset#> .
@@ -22,7 +22,7 @@
   rdf:type owl:Ontology ;
   rdf:type cc:Work ;
   cc:license "<http://creativecommons.org/licenses/by/4.0/>" ;
-  dc:contributor [
+  dcterms:contributor [
     sdo:affiliation [
       sdo:identifier <https://ror.org/03qn8fb07> ;
       sdo:name "CSIRO" ;
@@ -31,7 +31,7 @@
     sdo:identifier <https://orcid.org/0000-0002-3884-3420> ;
     sdo:name "Simon Cox" ;
   ] ;
-  dc:contributor [
+  dcterms:contributor [
     sdo:affiliation [
       sdo:identifier <https://ror.org/03qn8fb07> ;
       sdo:name "CSIRO" ;
@@ -41,7 +41,7 @@
     sdo:name "Sharon Tickell" ;
   	sdo:url <https://people.csiro.au/t/s/sharon-tickell> ;
   ] ;
-  dc:creator [
+  dcterms:creator [
     sdo:affiliation [
       sdo:identifier <https://ror.org/03qn8fb07> ;
       sdo:name "CSIRO" ;
@@ -51,9 +51,9 @@
     sdo:identifier <https://orcid.org/0000-0002-2237-0091> ;
     sdo:url <https://people.csiro.au/y/j/jonathan-yu> ;
   ] ;
-  dc:description "This ontology is being developed by CSIRO under the eReefs project for describing classes of datasets, such as observational datasets." ;
-  dc:description "It imports the Parameter Usage Vocabulary (PUV) ontology to support dataset-parameter-level metadata." ;
-  dc:publisher [
+  dcterms:description "This ontology is being developed by CSIRO under the eReefs project for describing classes of datasets, such as observational datasets." ;
+  dcterms:description "It imports the Parameter Usage Vocabulary (PUV) ontology to support dataset-parameter-level metadata." ;
+  dcterms:publisher [
     sdo:affiliation [
       sdo:identifier <https://ror.org/03qn8fb07> ;
       sdo:name "CSIRO" ;
@@ -62,9 +62,10 @@
     sdo:name "eReefs" ;
     sdo:url <https://www.ereefs.org.au/> ;
   ] ;
-  dc:source <https://github.com/eReefs/dpn-ontology/> ;
-  dc:title "Data Provider Node Dataset ontology" ;
+  dcterms:source <https://github.com/eReefs/dpn-ontology/> ;
+  dcterms:title "Data Provider Node Dataset ontology" ;
   owl:imports <http://purl.org/dpn/v0.9> ;
+  owl:imports <https://w3id.org/env/puv> ;
   owl:priorVersion <http://purl.org/dpn/dataset/v0.8> ;
   owl:versionIRI <http://purl.org/dpn/dataset/v0.9> ;
   owl:versionInfo "v0.9 eReefs Phase 6a 2025" ;
@@ -99,13 +100,18 @@ dpnd:bbTopLeft
 dpnd:spatial
   rdf:type owl:ObjectProperty ;
   rdfs:comment "The spatial location (e.g. point or bounding box) in the WGS84 coordinate system where observations were made" ;
-  rdfs:domain dpnd:Observation , dpnd:ObservationGroup ;
+  sdo:domainIncludes dpnd:Observation , dpnd:ObservationGroup ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpnd:Observation dpnd:ObservationGroup ) ;
+  ] ;
   rdfs:label "spatial" ;
+  sdo:rangeIncludes dpnd:BoundingBox, geo:Point ;
   rdfs:range [
       a owl:Class ;
       owl:unionOf ( dpnd:BoundingBox geo:Point ) ;
   ] ;
-  rdfs:subPropertyOf dc:spatial ;
+  rdfs:subPropertyOf dcterms:spatial ;
 .
 # endregion
 
@@ -115,7 +121,7 @@ dpnd:spatial
 dpnd:TimeInterval
   rdf:type owl:Class ;
   rdfs:label "Time interval" ;
-  rdfs:subClassOf dc:PeriodOfTime ;
+  rdfs:subClassOf dcterms:PeriodOfTime ;
   rdfs:subClassOf time:Interval ;
 .
 dpnd:start
@@ -135,97 +141,139 @@ dpnd:end
 dpnd:temporal
   rdf:type owl:ObjectProperty ;
   rdfs:comment "The time-range for which observations were made" ;
-  rdfs:domain dpnd:Observation , dpnd:ObservationGroup ;
+  sdo:domainIncludes dpnd:Observation , dpnd:ObservationGroup ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpnd:Observation dpnd:ObservationGroup ) ;
+  ] ;
   rdfs:label "temporal" ;
   rdfs:range dpnd:TimeInterval ;
-  rdfs:subPropertyOf dc:temporal ;
+  rdfs:subPropertyOf dcterms:temporal ;
 .
 
 # endregion
-
 #..............................................................................
-# region Dataset
+# region Observation
 
 dpnd:Observation
   rdf:type owl:Class ;
-  rdfs:comment "A dataset which contains information about related observations of a single property. These may be directly observed (field observations) or modelled" ;
-  rdfs:comment "The scientifically-interesting attributes of the observed property should be described using the Parameter Usage Vocabulary (PUV) ontology." ;
-  rdfs:comment "For backwards compatibility with previous versions of the Data Provide Node dataset ontology, the attributes *may* also (or instead) be described via the deprecated Observable Properties (OP) ontology." ;
-
+  rdfs:comment """A dataset which contains information about related observations of a single property.
+  These may be directly observed (field observations) or modelled. The subject of the `Observation` should be described using
+  the [Parameter Usage Vocabulary (PUV) ontology](https://w3id.org/env/puv).""" ;
+  rdfs:comment """In previous versions of the Data Provide Node dataset ontology, the subjects of `Observation`
+  entities were defined using the now-defunct [Observable Properties ontology](http://environment.data.gov.au/def/op).
+  Those properties are now deprecated, and all users of this ontology should switch to using the equivalent `puv:`
+  properties and terms from the appropriate NVS vocabularies instead.""" ;
   rdfs:label "Observation" ;
   rdfs:subClassOf dpn:Dataset ;
   rdfs:subClassOf puv:Parameter ;
   rdfs:subClassOf op:PropertyKind ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
-      owl:onProperty dpnd:relatedVariable ;
+      owl:onProperty dpn:hostedBy ;
+      owl:someValuesFrom dpnd:ObservationGroup ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpnd:identifier ;
       owl:cardinality 1 ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
-      owl:onProperty dpnd:spatial ;
-      owl:someValuesFrom geo:SpatialThing ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpnd:spatial ;
-      owl:cardinality 1 ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpnd:temporal ;
-      owl:someValuesFrom dpnd:TimeInterval ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpnd:temporal ;
-      owl:cardinality 1 ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty puv:parameter ;
+      owl:onProperty dpn:subject ;
       owl:maxCardinality 1 ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
-      owl:onProperty dpn:hostedBy ;
-      owl:someValuesFrom dpnd:ObservationGroup ;
-    ] ;
-.
-
-dpnd:relatedVariable
-  owl:equivalentProperty dc:identifier ;
-  rdf:type owl:Property ;
-  rdfs:comment "The unique term used to identify this Observation in its ObservationGroup when querying data from the Observation's distributions." ;
-  rdfs:example "If an ObservationGroup is stored in netCDF Files, the related variable is the netCDF Parameter name containing the Observation values." ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "variable" ;
- .
-
-dpnd:ObservationGroup
-  rdf:type owl:Class ;
-  rdfs:comment "A Dataset made up of one or more Observations which were collected (or simulated) over the same spatial and temporal range." ;
-  rdfs:label "Observation Group" ;
-  rdfs:subClassOf dpn:Dataset ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpn:implements ;
-      owl:someValuesFrom dpn:ObservationServiceInterface ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
-      owl:onProperty dpnd:spatial ;
-      owl:someValuesFrom geo:SpatialThing ;
-    ] ;
-  rdfs:subClassOf [
-      rdf:type owl:Restriction ;
       owl:onProperty dpnd:spatial ;
       owl:cardinality 1 ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
       owl:onProperty dpnd:temporal ;
-      owl:someValuesFrom dpnd:TimeInterval ;
+      owl:cardinality 1 ;
+    ] ;
+.
+dpnd:identifier
+  rdf:type owl:DatatypeProperty ;
+  rdfs:comment "The unique term used to retrieve data or metadata for this observation when querying the Observation's distributions." ;
+  rdfs:example "If an ObservationGroup is stored in netCDF Files, this is equivalent to a netCDF data variable name." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "identifier" ;
+  rdfs:subPropertyOf dcterms:identifier ;
+  owl:equivalentProperty dcterms:identifier ;
+  owl:equivalentProperty dpnd:relatedVariable ;
+.
+dpnd:subject
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:TransitiveProperty ;
+  rdfs:comment """Reference to a `skos:Concept` which describes the subject of these observations.
+  This is a transitive property, which means that all of the target concept's `broader` concepts may also be
+  considered to describe the subject of these observations.""" ;
+  skos:note """If the value of this property is a `puv:Parameter` term from the
+  NVS P01 vocabulary which can be found at <https://vocab.nerc.ac.uk/collection/P01/>:
+
+  - The alternate property-ID of `puv:parameter` may be used (note: the PUV ontology does not actually define a property of that ID...)
+  - The target-concept may be used as a template for this `Observation`: any `skos:` and `puv:` properties may be
+    effectively duplicated on this `Observation`.
+  - If this observation and the target-concept have properties with identical IDs, then the value of the local
+    property *overrides* the value of the property inherited from the template.
+  """ ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "subject" ;
+  rdfs:range [
+    a owl:Class ;
+    owl:unionOf ( puv:Parameter sosa:observedProperty op:PropertyKind skos:Concept ) ;
+  ] ;
+  rdfs:subPropertyOf dcterms:subject ;
+  rdfs:subPropertyOf dcat:theme ;
+  owl:equivalentProperty puv:parameter ;
+  owl:equivalentProperty sosa:observedProperty ;
+  owl:equivalentProperty op:propertyKind ;
+  owl:equivalentProperty op:qualityKind ;
+  owl:equivalentProperty qudt:hasQuantityKind ;
+.
+
+# endregion
+#..............................................................................
+# region ObservationGroup
+
+dpnd:ObservationServiceInterface
+  rdf:type owl:Class ;
+  rdfs:comment "An category of well-known service Interfaces that can be used to identify and describe parameter-level `Observation` instances associated with a `dpn:Dataset`." ;
+  rdfs:label "Observation Service Interface" ;
+  rdfs:subClassOf dpn:InformationModelServiceInterface ;
+.
+
+dpnd:ObservationDistribution
+  rdf:type owl:Class ;
+  rdfs:subClassOf dpn:Distribution ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:someValuesFrom dpnd:ObservationServiceInterface ;
+    ] ;
+.
+
+dpnd:ObservationGroup
+  rdf:type owl:Class ;
+  rdfs:comment """A collection of related `Observation` datasets which share the a set of descriptive attributes including
+  but not limited to `dcterms:license`, `dcterms:rights`, `dpnd:spatial` and `dpnd:temporal`.""" ;
+  rdfs:comment """Any attributes  configured on the `ObservationGroup` are inherited by the `Observation` datasets in the group unless
+  overridden by attributes with an identical predicate configured directly on the `Observation`.""" ;
+  rdfs:comment """At least one of the `dcat:distribution` resources associated with the `ObservationGroup` should implement
+  a `dpn:ObservationServiceInterface` which permits discovery of the `Observation` entities in the group.""" ;
+  rdfs:label "Observation Group" ;
+  rdfs:subClassOf dpn:Dataset ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:distribution ;
+      owl:someValuesFrom dpnd:ObservationDistribution ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpnd:spatial ;
+      owl:cardinality 1 ;
     ] ;
   rdfs:subClassOf [
       rdf:type owl:Restriction ;
@@ -245,69 +293,6 @@ dpnd:ObservationGroup
 .
 
 # endregion
-
-#..............................................................................
-# region OP-ont Properties
-
-dpnd:relatedFeature
-  owl:equivalentProperty puv:featureOfInterest ;
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The feature-of-interest from the relatedSubstanceOrTaxon that is being observed" ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "related feature" ;
-  rdfs:subPropertyOf op:featureOfInterest ;
- .
-dpnd:relatedMedium
-  owl:equivalentProperty puv:matrix ;
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The medium in which the feature-of-interests is embedded" ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "related medium" ;
-  rdfs:subPropertyOf op:matrix ;
-.
-dpnd:relatedQualityKind
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The quality of the observation" ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "related quality kind" ;
-  rdfs:range op:QualityKind ;
-  owl:subPropertyOf op:qualityKind ;
-.
-dpnd:relatedQuantityKind
-  owl:equivalentProperty puv:property ;
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The property or attribute of the subject which was measured for this observation" ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "related quantity kind" ;
-  rdfs:Range op:QuantityKind ;
-  rdfs:subPropertyOf qudt:hasQuantityKind ;
-.
-dpnd:relatedSubstanceOrTaxon
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The substance of taxon which is the subject of the observation." ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "related substance or taxon" ;
-  rdfs:range op:SubstanceOrTaxon ;
-  rdfs:subPropertyOf op:objectOfInterest ;
-.
-dpnd:procedure
-  owl:equivalentProperty puv:method ;
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "The procedure or sensor system used to make the observation or estimate of property value" ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "procedure" ;
-  rdfs:subPropertyOf op:procedure ;
-.
-dpnd:relatedUnit
-  rdf:type owl:DeprecatedProperty ;
-  rdfs:comment "Unit for the value of the observation." ;
-  rdfs:domain dpnd:Observation ;
-  rdfs:label "unit" ;
-  rdfs:range qudt:Unit ;
-  rdfs:subPropertyOf qudt:unit ;
-.
-# endregion
-
 #----------------------------------------------------------------------
 # region PUV-ont Properties
 # PUV-ont property re-definitions so that we can add dpn:Observation to the domain
@@ -317,23 +302,22 @@ puv:matrix
   owl:equivalentProperty dpnd:relatedMedium ;
   owl:equivalentProperty op:matrix ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment """The context / container / medium within which the property of an entity is observed.
-  Reference to the NVS Matrix (S26) term for this matrix of this observation.""" ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "matrix" ;
+  rdfs:comment """The context / container / medium within which the property of an entity is observed.""" ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: matrix" ;
   rdfs:range puv:Matrix ;
-  skos:note "puv:Matrix Terms => NVS S26 <https://vocab.nerc.ac.uk/collection/S26/>" ;
-
+  skos:scopeNote "`puv:Matrix` terms which are valid for the range of this property are defined in the [NVS S26 Vocabulary](https://vocab.nerc.ac.uk/collection/S26/)" ;
 .
 puv:matrixRelationship
   owl:equivalentProperty puv:matrixRelationship ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS Measurement-matrix relationship (S02) term for this observation.""" ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "measurement-matrix relationship" ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: measurement-matrix relationship" ;
   rdfs:range puv:MMRel ;
-  skos:note "puv:MMRel Terms => NVS S02 <https://vocab.nerc.ac.uk/collection/S02/>" ;
-
+  skos:scopeNote "`puv:MMRel` terms which are valid for the range of this property are defined in the [NVS S02 Vocabulary](https://vocab.nerc.ac.uk/collection/S02/)" ;
 .
 puv:method
   owl:equivalentProperty dpnd:procedure ;
@@ -343,18 +327,20 @@ puv:method
   owl:equivalentProperty puv:sampleProcessing ;
   owl:equivalentProperty qudt:generalization ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment """The procedure or sensor system used in making the observation or estimate of property value.
-  Reference to the NVS Method (S03 or S04 or S05) which is the object of interest.
-  """ ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "method" ;
+  rdfs:comment """The procedure or sensor system used in making the observation or estimate of property value.""" ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: method" ;
   rdfs:range [
       a owl:Class ;
       owl:unionOf ( puv:Method puv:PrepMethod puv:AnalyticalMethod puv:DataProcessingMethod ) ;
     ] ;
-  skos:note "puv:PrepMethod Terms => NVS S03 <https://vocab.nerc.ac.uk/collection/S03/>" ;
-  skos:note "puv:AnalyticalMethod Terms => NVS S04 <https://vocab.nerc.ac.uk/collection/S04/>" ;
-  skos:note "puv:DataProcessingMethod Terms => NVS 05 <https://vocab.nerc.ac.uk/collection/S05/>" ;
+  skos:scopeNote """`puv:Method` terms which are valid for the range of this property are:
+
+  - `puv:PrepMethod` terms from the [NVS S03 vocabulary](https://vocab.nerc.ac.uk/collection/S03/)
+  - `puv:AnalyticalMethod` terms from the [NVS S04 vocabulary](https://vocab.nerc.ac.uk/collection/S04/)
+  - `puv:DataProcessingMethod` terms from the [NVS S05 vocabulary](https://vocab.nerc.ac.uk/collection/S05/)
+  """ ;
 .
 puv:objectOfInterest
   owl:equivalentProperty dpnd:relatedFeature ;
@@ -366,56 +352,157 @@ puv:objectOfInterest
   owl:equivalentProperty puv:physicalObject ;
   owl:equivalentProperty qudt:generalization ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "NVS Entity which is the object of interest for these observations. Can be a Biological entity (S25), Chemical Substance (S27) or Physical Phenomenon (S29)" ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "object of interest" ;
+  rdfs:comment "The entity which is the object of interest for these observations." ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: object of interest" ;
   rdfs:range [
       a owl:class ;
       owl:unionOf ( puv:Entity puv:BiologicalEntity puv:ChemicalEntity puv:PhysicalEntity ) ;
   ] ;
-  skos:note "puv:BiologicalEntity Terms => NVS S25 <https://vocab.nerc.ac.uk/collection/S25/>" ;
-  skos:note "puv:ChemicalEntity Terms => NVS S27 <https://vocab.nerc.ac.uk/collection/S27/>" ;
-  skos:note "puv:PhysicalEntity Terms => NVS S29 <https://vocab.nerc.ac.uk/collection/S29/>" ;
+  skos:scopeNote """`puv:Entity` terms which are valid for the range of this property are:
+
+  - `puv:BiologicalEntity` terms from the [NVS S25 vocabulary](https://vocab.nerc.ac.uk/collection/S25/)
+  - `puv:ChemicalEntity` terms from the [NVS S27 vocabulary](https://vocab.nerc.ac.uk/collection/S27/)
+  - `puv:PhysicalEntity` terms from the [NVS S29 vocabulary](https://vocab.nerc.ac.uk/collection/S29/)
+  """ ;
 .
 puv:property
   owl:equivalentProperty dpnd:relatedQuantityKind ;
   owl:equivalentProperty qudt:hasQuantityKind ;
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS S06 property or attribute that is being measured, which must be associated with either an object of interest or a matrix or both.""" ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "property" ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: property" ;
   rdfs:range puv:Property ;
-  skos:note "puv:Property Terms => NVS S06 <https://vocab.nerc.ac.uk/collection/S06/>" ;
+  skos:scopeNote "`puv:Property` terms which are valid for the range of this property are defined in the [NVS S06 vocabulary](https://vocab.nerc.ac.uk/collection/S06/)" ;
 .
 puv:statistic
   rdf:type owl:ObjectProperty ;
   rdfs:comment """Reference to the NVS S07 term that describes the statistical treatment of the observation.
   This property on a dpn:Observation resource, this overrides the equivalent property value inherited from dpn:Observation -> parameter.
   """ ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "statistic" ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: statistic" ;
   rdfs:range puv:ParameterStatistic ;
-  skos:note "puv:ParameterStatistic Terms => NVS S07 <https://vocab.nerc.ac.uk/collection/S07/>" ;
+  skos:scopeNote "`puv:ParameterStatistic` terms which are valid for the range of this property are defined in the [NVS S07 vocabulary](https://vocab.nerc.ac.uk/collection/S07/)" ;
 .
 puv:uom
   owl:equivalentProperty dpnd:relatedUnit ;
   owl:equivalentProperty qudt:unit ;
   rdf:type owl:ObjectProperty ;
-  rdfs:comment """Reference to the NVS P06 term that specifies the scale or unit of measurement for the observation.
-  If no suitable puv:Unit exists, then use qudt:unit (targetting a qudt:Unit resource) instead.
-  """ ;
-  rdfs:domain puv:Parameter , dpnd:Observation ;
-  rdfs:label "uom" ;
+  rdfs:comment "Reference to the NVS P06 term that specifies the scale or unit of measurement for the observation." ;
+  sdo:domainIncludes puv:Parameter , dpnd:Observation ;
+  rdfs:domain puv:Parameter ;
+  rdfs:label "puv: unit of measurement" ;
   rdfs:range puv:UnitOfMeasurement ;
-  skos:note "puv:Unit Terms => NVS P06 <https://vocab.nerc.ac.uk/collection/P06/>" ;
+  skos:scopeNote "`puv:Unit` terms which are valid for the range of this property are defined in the [NVS P06 vocabulary](https://vocab.nerc.ac.uk/collection/P06/)" ;
+  skos:scopeNote "If no suitable `puv:Unit` exists, then use you should use the `qudt:unit` property [qudt:Unit](https://www.qudt.org/doc/DOC_VOCAB-UNITS.html#Classes) term instead." ;
 .
-puv:parameter
-  owl:equivalentProperty op:property ;
-  owl:equivalentProperty sosa:observedProperty ;
+
+# endregion
+#..............................................................................
+# region Deprecated
+# These are all DEPRECATED, and are included in this version of the ontology only
+# so that we can use these docs to explain to people what they should use instead.
+dpnd:relatedFeature
   rdf:type owl:ObjectProperty ;
-  rdfs:comment "The NVS P01 Parameter that is the equivalent to this Observation, and the source of any properties from the puv namespace which have not been overridden." ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The feature-of-interest from the `dpnd:relatedSubstanceOrTaxon` that is being observed" ;
+  rdfs:comment "This property has been deprecated. Please use `puv:property` and a suitable [NVS S06 vocabulary](https://vocab.nerc.ac.uk/collection/S06/) term instead." ;
   rdfs:domain dpnd:Observation ;
-  rdfs:label "parameter" ;
-  rdfs:range puv:Parameter ;
-  skos:note "puv:Parameter Terms => NVS P01 <https://vocab.nerc.ac.uk/collection/P01/>" ;
+  rdfs:label "deprecated: feature" ;
+  rdfs:subPropertyOf op:featureOfInterest ;
+  owl:equivalentProperty puv:property ;
+ .
+dpnd:relatedMedium
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The medium in which the feature-of-interest is embedded." ;
+  rdfs:comment "This property has been deprecated. Please use `puv:matrix` and a suitable [NVS S26 Vocabulary](https://vocab.nerc.ac.uk/collection/S26/) term instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: medium" ;
+  rdfs:subPropertyOf op:matrix ;
+  owl:equivalentProperty puv:matrix ;
 .
+dpnd:relatedPropertyKind
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The property which is the subject of the observation." ;
+  rdfs:comment "This is a deprecated synonym of `dpnd:subject`. Please use `dpnd:subject` with a suitable [NVS P01 Vocabulary](https://vocab.nerc.ac.uk/collection/P01/) term instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: property kind" ;
+  rdfs:range op:PropertyKind ;
+  owl:subPropertyOf op:propertyKind ;
+  owl:equivalentProperty puv:parameter ;
+  owl:equivalentProperty dpnd:subject ;
+.
+dpnd:relatedQualityKind
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The quality of the observation" ;
+  rdfs:comment "This is a deprecated synonym of `dpnd:subject`. Please use `dpnd:subject` with a suitable [NVS P01 Vocabulary](https://vocab.nerc.ac.uk/collection/P01/) term instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: quality kind" ;
+  rdfs:range op:QualityKind ;
+  owl:subPropertyOf op:qualityKind ;
+  owl:equivalentProperty puv:parameter ;
+  owl:equivalentProperty dpnd:subject ;
+.
+dpnd:relatedQuantityKind
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The quantity of the observation" ;
+  rdfs:comment "This is a deprecated synonym of `dpnd:subject`. Please use `dpnd:subject` with a suitable [NVS P01 Vocabulary](https://vocab.nerc.ac.uk/collection/P01/) term instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: quantity kind" ;
+  rdfs:range op:ScaledQuantityKind ;
+  rdfs:subPropertyOf qudt:hasQuantityKind ;
+  owl:equivalentProperty puv:parameter ;
+  owl:equivalentProperty dpnd:subject ;
+.
+dpnd:procedure
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The procedure or sensor system used to make the observation or estimate of property value." ;
+  rdfs:comment """This property has been deprecated. Please use `puv:method` with a suitable [NVS S03](https://vocab.nerc.ac.uk/collection/S03/),
+              [NVS S04](https://vocab.nerc.ac.uk/collection/S04/) or [NVS S05](https://vocab.nerc.ac.uk/collection/S05/) vocabulary term instead.""" ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: procedure" ;
+  rdfs:subPropertyOf op:procedure ;
+  owl:equivalentProperty puv:method ;
+.
+dpnd:relatedSubstanceOrTaxon
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "The substance or taxon which is the subject of the observation." ;
+  rdfs:comment """This property has been deprecated. Please use `puv:objectOfInterest` with a suitable [NVS S25](https://vocab.nerc.ac.uk/collection/S25/)
+    or [NVS S27](https://vocab.nerc.ac.uk/collection/S27/) or [NVS S29](https://vocab.nerc.ac.uk/collection/S29/) vocabulary term instead.""" ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: substance or taxon" ;
+  rdfs:range op:SubstanceOrTaxon ;
+  rdfs:subPropertyOf op:objectOfInterest ;
+  owl:equivalentProperty puv:objectOfInterest ;
+.
+dpnd:relatedUnit
+  rdf:type owl:ObjectProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "Unit for the value of the observation." ;
+  rdfs:comment "This property has been deprecated. Please use `puv:uom` with a suitable [NVS P06 Vocabulary](https://vocab.nerc.ac.uk/collection/P06/) term instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: unit" ;
+  rdfs:range qudt:Unit ;
+  owl:equivalentProperty puv:uom ;
+  owl:equivalentProperty qudt:unit ;
+.
+dpnd:relatedVariable
+  rdf:type owl:DatatypeProperty ;
+  rdf:type owl:DeprecatedProperty ;
+  rdfs:comment "This is a deprecated synonym for `dpnd:identifier`. Please use that instead." ;
+  rdfs:domain dpnd:Observation ;
+  rdfs:label "deprecated: variable" ;
+  owl:equivalentProperty dpnd:identifier ;
+.
+# endregion
