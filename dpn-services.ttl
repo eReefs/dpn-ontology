@@ -1,5 +1,6 @@
 @prefix cc: <http://creativecommons.org/ns#> .
 @prefix dc: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dpn: <http://purl.org/dpn#> .
 @prefix dpnd: <http://purl.org/dpn/dataset#> .
 @prefix dpns: <http://purl.org/dpn/services#> .
@@ -106,8 +107,9 @@ dpns:ISO
   while ISO-19139 (<https://standards.iso.org/iso/19139/>) describes a schema for
   representing ISO-19115 metadata in XML format.""" ;
   rdfs:comment "See also: <https://en.wikipedia.org/wiki/Geospatial_metadata>" ;
-  rdfs:label "ISO-19115 Metadata Standard" ;
-  rdfs:label "ISO-19139 Metadata Implementation Schema" ;
+  rdfs:label "ISO Metadata Service" ;
+  skos:altLabel "ISO-19115 Metadata Standard" ;
+  skos:altLabel "ISO-19139 Metadata Implementation Schema" ;
   skos:altLabel "ISO";
   rdfs:subClassOf dpn:MetadataServiceInterface ;
 .
@@ -125,7 +127,8 @@ dpns:NetcdfSubset
   rdf:type owl:Class ;
   dc:source <https://docs.unidata.ucar.edu/tds/current/userguide/netcdf_subset_service_ref.html> ;
   rdfs:comment """A web service for subsetting point- or grid-formatted scientific datasets in earth coordinates
-  (lat.lon or projection coordinates and date ranges) rather than the index ranges of the dataset's native storage format.""" ;
+  (lat.lon or projection coordinates and date ranges) rather than the index ranges of the dataset's native storage format.
+  The results of the subset operation are made available for download by the caller.""" ;
   rdfs:label "Netcdf Subset Service (NCSS)" ;
   skos:altLabel "NCSS" ;
   rdfs:subClassOf dpn:DataServiceInterface ;
@@ -397,12 +400,87 @@ dpns:SISSVocService
 
 #..............................................................................
 # region THREDDS
+
+dpns:ThreddsCatalogSchema
+  rdf:type owl:Class ;
+  dc:source <https://schemas.unidata.ucar.edu/thredds/InvCatalog.1.0.7.xsd> ;
+  rdfs:comment "Formal definition of the structure of an XML-format THREDDS Catalog" ;
+  rdfs:label "THREDDS Catalog Schema" ;
+  rdfs:subClassOf dpn:CatalogServiceInterface ;
+.
+
+dpns:ThreddsCatalog
+  rdf:type owl:Class ;
+  dc:source <https://docs.unidata.ucar.edu/tds/current/userguide/basic_client_catalog.html> ;
+  rdfs:comment """A THREDDS catalog is a web-accessible XML-format resource which describes THREDDS datasets
+  and local and remote sub-catalogs in a hierarchical structure.""" ;
+  rdfs:comment """The `accessURL` property of a THREDDS Catalog must be an absolute URL to the XML-formatted version of the catalog.""" ;
+  rdfs:label "THREDDS Catalog" ;
+  rdfs:subClassOf dpn:Catalog ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:allValuesFrom dpns:ThreddsCatalogSchema ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:implements ;
+      owl:cardinality 1 ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:hostedBy ;
+      owl:someValuesFrom dpns:THREDDS ;
+    ] ;
+.
+
+dpns:ThreddsDataset
+  rdf:type owl:Class ;
+  rdfs:comment """A THREDDS Dataset is described by an entry in a THREDDS Catalog, and distributed via a subset of the
+  service interfaces which are implemented by the hosting THREDDS Server.
+  The underlying storage format may be a single file (historically NetCDF or HDF5), or an aggregated collection of
+  multiple files which combine to make up a collection of related Observations.""" ;
+  rdfs:label "THREDDS Dataset" ;
+  rdfs:subClassOf dpnd:ObservationGroup ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:hostedBy ;
+      owl:someValuesFrom dpns:THREDDS ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:hostedBy ;
+      owl:someValuesFrom dpns:ThreddsCatalog ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dcat:distribution ;
+      owl:someValuesFrom dpns:ISO ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dcat:distribution ;
+      owl:someValuesFrom dpns:OPeNDAP ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dcat:distribution ;
+      owl:someValuesFrom dpns:NCSS ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dcat:distribution ;
+      owl:someValuesFrom dpns:NcWMS ;
+    ] ;
+.
+
 dpns:THREDDS
   rdf:type owl:Class ;
   dc:source <https://www.unidata.ucar.edu/software/tds> ;
   rdfs:comment """THREDDS is a web server that provides data-query-interfaces for scientific datasets,
   using a variety of remote data access protocols, including OpenDAP, NcWMS and WCS. It may optionally expose
   raw data files for direct download via HTTP, and ISO-formatted metadata records.""" ;
+  rdfs:comment """Each THREDDS Data Server instance exposes a single root catalog which may have any number of nested sub-catalogs.""" ;
   rdfs:label "THREDDS Data Server" ;
   skos:altLabel "THREDDS";
   skos:altLabel "TDS";
@@ -437,5 +515,36 @@ dpns:THREDDS
       owl:onProperty dpn:implements ;
       owl:someValuesFrom dpns:NcWMS ;
     ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:catalog ;
+      owl:allValuesFrom dpns:ThreddsCatalog ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:catalog ;
+      owl:minCardinality 1 ;
+    ] ;
+  rdfs:subClassOf [
+      rdf:type owl:Restriction ;
+      owl:onProperty dpn:hostsDataset ;
+      owl:allValuesFrom dpns:ThreddsDataset ;
+    ] ;
 .
+# endregion
+
+# region Object Properties
+
+dpns:labelAttribute
+  rdf:type owl:ObjectProperty ;
+  rdfs:comment "The NetCDF Global Attribute that should be interpreted as the label of a DataSet." ;
+  rdfs:comment "If this property is present on a Catalog, it applies to the OPeNDAP distributions of *all* NetCDF Datasets discovered via that catalog." ;
+  sdo:domainIncludes dpns:OPeNDAP , dpns:ThreddsCatalog ;
+  rdfs:domain [
+    a owl:Class ;
+    owl:unionOf ( dpns:OPeNDAP dpns:ThreddsCatalog ) ;
+  ] ;
+  rdfs:label "label attribute" ;
+.
+
 # endregion
