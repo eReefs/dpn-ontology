@@ -1,0 +1,9 @@
+.env
+.git
+.github
+.gitignore
+docker-compose.yml
+Dockerfile
+hooks
+server/Dockerfile
+server/hooks

@@ -1,0 +1,10 @@
+pylode==3.2.1
+
+bs4
+dominate
+falcon
+gunicorn[gevent]
+html5lib
+markdown
+rdflib
+validators
